@@ -2,18 +2,33 @@
 
 const Solicitacao = use('App/Models/Common/Solicitacao');
 
+const Cliente = use('App/Models/Common/Cliente');
+
 const Database = use('Database')
 const axios = require('axios');
 
 class SolicitacaoController {
 
   async index({ request }) {
-    const { id, cliente_id, acao_servico_id, status } = request.all();
+    const { id, cliente_id, acao_servico_id, status } = request.only(['id', 'cliente_id', 'acao_servico_id', 'status']);
+
+    var { data_inicio_criacao, data_fim_criacao } = request.only(['data_inicio_criacao', 'data_fim_criacao']);
+
+    const { page,
+      limit,
+      sortField = 'id',
+      sortOrder = 'ASC',
+    } = request.only(['page',
+      'limit',
+      'sortField',
+      'sortOrder'
+    ])
 
     const query = Solicitacao.query()
       .with('cliente')
       .with('acaoServico.acao')
       .with('acaoServico.servico')
+      .orderBy('created_at', 'desc')
 
     if (id) {
       query.where({ id })
@@ -27,13 +42,23 @@ class SolicitacaoController {
       query.where({ acao_servico_id })
     }
 
-
     if (status) {
       query.where({ status })
     }
 
-    query.orderBy('id', 'asc')
-    return await query.fetch()
+    if (data_inicio_criacao && data_fim_criacao) {
+      query.whereRaw(`date(created_at AT TIME ZONE 'BRA') BETWEEN date('${data_inicio_criacao}' AT TIME ZONE 'BRA') AND date('${data_fim_criacao}' AT TIME ZONE 'BRA')`);
+    } else {
+      if (data_inicio_criacao) {
+        query.whereRaw(`date(created_at AT TIME ZONE 'BRA') >= date('${data_inicio_criacao}')`)
+      }
+      if (data_fim_criacao) {
+        query.whereRaw(`date(created_at AT TIME ZONE 'BRA') <= date('${data_fim_criacao}')`)
+      }
+    }
+
+    const result = await query.paginate(page ? page : 1, limit ? limit : 10)
+    return result
   }
 
   async show({ request, params }) {
@@ -49,15 +74,13 @@ class SolicitacaoController {
   async store({ request, response, auth }) {
 
     try {
+
       const dataServico = request.only(['cliente_id', 'acao_servico_id', 'status', 'finished_at'])
+
+      const dataCliente = request.only(['cliente'])
 
       if (dataServico && !dataServico.status) {
         dataServico.status = 'ativo'
-      }
-
-      if (dataServico && !dataServico.cliente_id) {
-        response.status(400).send('Cliente não informado')
-        return
       }
 
       if (dataServico && !dataServico.acao_servico_id) {
@@ -68,6 +91,36 @@ class SolicitacaoController {
       if (dataServico && !dataServico.status) {
         response.status(400).send('Status não informado')
         return
+      }
+
+      if (dataServico && !dataServico.cliente_id) {
+        // console.log('Cliente_id não informado');
+
+        if (dataCliente && dataCliente.cliente && !dataCliente.cliente.origem) {
+          dataCliente.cliente.origem = 'NETIZ APP'
+        }
+
+        if (dataCliente && dataCliente.cliente && !dataCliente.cliente.externo_id) {
+          dataCliente.cliente.externo_id = 0;
+        }
+
+        if (dataCliente && dataCliente.cliente && !dataCliente.cliente.status) {
+          dataCliente.cliente.status = 'ativo'
+        }
+
+        console.log(dataCliente.cliente)
+
+        if (dataCliente && dataCliente.cliente && dataCliente.cliente.documento) {
+          dataCliente.cliente.documento = dataCliente.cliente.documento.replace(/[^0-9]/g, '');
+        }
+
+        if (dataCliente && dataCliente.cliente && dataCliente.cliente.telefone) {
+          dataCliente.cliente.telefone = dataCliente.cliente.telefone.replace(/[^0-9]/g, '');
+        }
+
+        const cliente = await Cliente.create(dataCliente.cliente)
+
+        dataServico.cliente_id = cliente.id
       }
 
       const servico = await Solicitacao.create(dataServico)

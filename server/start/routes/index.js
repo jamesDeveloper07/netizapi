@@ -26,3 +26,16 @@ Route.get('/', () => {
 Route.get('/app', 'AppController.index').middleware(["auth:jwt"]);
 Route.get('/app_role_admin', 'AppController.roleAdminValidation').middleware(['auth:jwt', 'is:(administrador)'])
 Route.get('/app_role_atend', 'AppController.roleAtendenteValidation').middleware(['auth:jwt', 'is:(administrador or atendente)'])
+
+
+//Sessions
+Route.post("/api/sessions", "Security/SessionController.create");
+Route.post("/api/sessions/refresh-roles", "Security/SessionController.refreshRoles").middleware([
+  "auth:jwt",
+]);
+Route.delete("/api/sessions", "Security/SessionController.destroy").middleware([
+  "auth:jwt",
+]);
+Route.get("/api/sessions", "Security/SessionController.show").middleware([
+  "auth:jwt",
+]);

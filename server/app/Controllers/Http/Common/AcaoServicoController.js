@@ -8,6 +8,8 @@ class AcaoServicoController {
     const { id, acao_id, servico_id, status } = request.all();
 
     const query = AcaoServico.query()
+      .with('acao')
+      .with('servico')
 
     if (id) {
       query.where({ id })

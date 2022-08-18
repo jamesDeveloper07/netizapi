@@ -13,10 +13,19 @@
 
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route');
+require('./notificacoes')
+require('./perfis')
 
 Route.group(() => {
   Route.post('/register', 'AuthController.register');
   Route.post('/authenticate', 'AuthController.authenticate');
   Route.delete('/revoke', 'AuthController.revoke').middleware(['auth:jwt']);
 
-}).prefix('/security');
+  //empresas
+  Route.get('/sessions/empresas', 'Security/MinhaEmpresaController.index').middleware(['auth:jwt']);
+  //Menus
+  Route.get('/sessions/menus', 'Security/MeuMenuController.index').middleware(['auth:jwt']);
+  //User-avatar
+  Route.post('/sessions/me/avatars', 'Security/UserAvatarController.store').middleware(['auth:jwt']);
+
+}).prefix('/api/security');

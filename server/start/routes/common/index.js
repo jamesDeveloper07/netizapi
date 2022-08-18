@@ -12,7 +12,15 @@
 */
 
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
+require('./empresas')
+
 const Route = use('Route');
+
+Route.group(() => {
+  //Parametros
+  Route.get('/parametros/:chave', 'Common/ParametroController.show').middleware(['auth:jwt',]);
+
+}).prefix('/api/common/')
 
 Route.group(() => {
   //cliente
@@ -43,4 +51,4 @@ Route.group(() => {
   Route.get('/enviarSolicitacoesAtivacao', 'Common/SolicitacaoController.enviarSolicitacoesAtivacao').middleware(['auth:jwt']);
   Route.get('/enviarSolicitacoesDesativacao', 'Common/SolicitacaoController.enviarSolicitacoesDesativacao').middleware(['auth:jwt']);
 
-}).prefix('/common');
+}).prefix('/api/common');
