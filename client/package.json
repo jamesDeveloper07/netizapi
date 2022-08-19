@@ -12,13 +12,12 @@
     "@types/react-select": "^5.0.1",
     "axios": "^0.19.0",
     "chart.js": "2.8.0",
-    "classnames": "2.2.6",
+    "classnames": "^2.3.1",
     "dropzone": "5.5.1",
     "express": "^4.17.1",
     "firebase": "^8.6.2",
     "list.js": "1.5.0",
     "moment": "^2.29.1",
-    "node-sass": "4.14.1",
     "nouislider": "13.1.4",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
@@ -98,6 +97,11 @@
     "@types/styled-components": "^5.1.0",
     "react-redux": "^7.1.0",
     "redux": "^4.0.4",
+    "sass": "^1.54.4",
     "typescript": "^3.9.5"
+  },
+  "resolutions": {
+    "@types/react": "17.0.2",
+    "@types/react-dom": "17.0.2"
   }
 }
