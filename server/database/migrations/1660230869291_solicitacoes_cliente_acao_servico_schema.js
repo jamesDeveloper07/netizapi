@@ -9,6 +9,7 @@ class SolicitacoesClienteAcaoServicoSchema extends Schema {
       table.increments()
       table.integer('cliente_id').notNullable().unsigned().references('id').inTable('common.clientes')
       table.integer('acao_servico_id').notNullable().unsigned().references('id').inTable('common.acoes_servicos')
+      table.string('protocolo_externo_id').unsigned().comment('Protocolo da solicitação em seu sistema de origem')
       table
         .enu('status', ['pendente', 'finalizada', 'cancelada', 'falha'])
         .notNullable()

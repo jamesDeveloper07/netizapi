@@ -32,27 +32,27 @@ class SessionController {
     }
 
     async show({ request, auth}) {
-        console.log('##### SHOW SESSION ####')
+        // console.log('##### SHOW SESSION ####')
 
         let user = await auth.getUser();
 
         let header = request.headers()
         let empresa_id = header.empresa_id
 
-        console.log('##### SHOW SESSION ####')
-        console.log({ header })
-        console.log({ empresa_id })
+        // console.log('##### SHOW SESSION ####')
+        // console.log({ header })
+        // console.log({ empresa_id })
 
         if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
-            console.log('##### BUSCANDO DO REQUEST ####')
+            // console.log('##### BUSCANDO DO REQUEST ####')
             const {emp_id} = request.only(['emp_id'])
-            console.log({ emp_id })
+            // console.log({ emp_id })
             empresa_id = emp_id
-            console.log({empresa_id})
+            // console.log({empresa_id})
         }
 
         if (empresa_id && !isNaN(empresa_id) && parseInt(empresa_id) > 0) {
-            console.log('ENTROU NO IF EMPRESA (SHOW SESSION)')
+            // console.log('ENTROU NO IF EMPRESA (SHOW SESSION)')
 
             const roles = await Role.query()
                 .whereRaw(`id in (
@@ -72,7 +72,7 @@ class SessionController {
             user.$relations.roles = roles;
 
         } else {
-            console.log('ENTROU NO ELSE EMPRESA (SHOW SESSION)')
+            // console.log('ENTROU NO ELSE EMPRESA (SHOW SESSION)')
         }
 
         return user;

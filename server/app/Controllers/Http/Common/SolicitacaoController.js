@@ -10,7 +10,7 @@ const axios = require('axios');
 class SolicitacaoController {
 
   async index({ request }) {
-    const { id, cliente_id, acao_servico_id, status } = request.only(['id', 'cliente_id', 'acao_servico_id', 'status']);
+    const { id, cliente_id, acao_servico_id, status, protocolo_externo_id } = request.only(['id', 'cliente_id', 'acao_servico_id', 'status']);
 
     var { data_inicio_criacao, data_fim_criacao } = request.only(['data_inicio_criacao', 'data_fim_criacao']);
 
@@ -57,6 +57,10 @@ class SolicitacaoController {
       }
     }
 
+    if (protocolo_externo_id) {
+      query.where({ protocolo_externo_id })
+    }
+
     const result = await query.paginate(page ? page : 1, limit ? limit : 10)
     return result
   }
@@ -75,25 +79,25 @@ class SolicitacaoController {
 
     try {
 
-      const dataServico = request.only(['cliente_id', 'acao_servico_id', 'status', 'finished_at'])
+      const dataSolicitacao = request.only(['cliente_id', 'acao_servico_id', 'status', 'finished_at', 'protocolo_externo_id'])
 
       const dataCliente = request.only(['cliente'])
 
-      if (dataServico && !dataServico.status) {
-        dataServico.status = 'ativo'
+      if (dataSolicitacao && !dataSolicitacao.status) {
+        dataSolicitacao.status = 'pendente'
       }
 
-      if (dataServico && !dataServico.acao_servico_id) {
-        response.status(400).send('Ação do Serviço não informada')
+      if (dataSolicitacao && !dataSolicitacao.acao_servico_id) {
+        response.status(400).send('Serviço/Ação não informado')
         return
       }
 
-      if (dataServico && !dataServico.status) {
+      if (dataSolicitacao && !dataSolicitacao.status) {
         response.status(400).send('Status não informado')
         return
       }
 
-      if (dataServico && !dataServico.cliente_id) {
+      if (dataSolicitacao && !dataSolicitacao.cliente_id) {
         // console.log('Cliente_id não informado');
 
         if (dataCliente && dataCliente.cliente && !dataCliente.cliente.origem) {
@@ -120,12 +124,12 @@ class SolicitacaoController {
 
         const cliente = await Cliente.create(dataCliente.cliente)
 
-        dataServico.cliente_id = cliente.id
+        dataSolicitacao.cliente_id = cliente.id
       }
 
-      const servico = await Solicitacao.create(dataServico)
+      const solicitacao = await Solicitacao.create(dataSolicitacao)
 
-      const id = servico.id
+      const id = solicitacao.id
       const data = await Solicitacao.query()
         .where({ id })
         .first()
