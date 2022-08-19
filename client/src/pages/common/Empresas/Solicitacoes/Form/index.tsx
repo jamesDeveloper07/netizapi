@@ -48,6 +48,7 @@ const Form: React.FC = ({ }) => {
 
   const [acao_servico_id, setAcao_servico_id] = useState<number>();
 
+  const [protocoloExterno, setProtocoloExterno] = useState<string>();
   const [nomeCliente, setNomeCliente] = useState<string>();
   const [documentoCliente, setDocumentoCliente] = useState<string>();
   const [telefoneCliente, setTelefoneCliente] = useState<string>();
@@ -83,6 +84,7 @@ const Form: React.FC = ({ }) => {
       setNomeCliente(solicitacao.cliente?.nome);
       setDocumentoCliente(solicitacao.cliente?.documento);
       setTelefoneCliente(solicitacao.cliente?.telefone);
+      setProtocoloExterno(solicitacao.protocolo_externo_id);
     }
 
   }, [solicitacao])
@@ -222,6 +224,8 @@ const Form: React.FC = ({ }) => {
       solicitacao.status = 'pendente';
     }
 
+    solicitacao.protocolo_externo_id = protocoloExterno;
+
     return solicitacao;
   }
 
@@ -323,9 +327,7 @@ const Form: React.FC = ({ }) => {
                   </small>
                 </FormGroup>
               </Col>
-            </Row>
 
-            <Row>
               <Col sm={12} md={6} lg={6}>
                 <FormGroup>
                   <label className="form-control-label" >
@@ -342,8 +344,10 @@ const Form: React.FC = ({ }) => {
                   </small>
                 </FormGroup>
               </Col>
-              <Col sm={12} md={6} lg={6}
-              >
+            </Row>
+
+            <Row>
+              <Col sm={12} md={6} lg={6}>
                 <FormGroup>
                   <label className="form-control-label" >
                     Telefone*
@@ -360,7 +364,7 @@ const Form: React.FC = ({ }) => {
                 </FormGroup>
               </Col>
 
-              <Col sm="12" md="6" lg="6">
+              <Col sm={12} md={6} lg={6}>
                 <FormGroup>
                   <label
                     className="form-control-label">
@@ -382,6 +386,27 @@ const Form: React.FC = ({ }) => {
                   </small>
                 </FormGroup>
               </Col>
+            </Row>
+
+            <Row>
+              <Col sm={12} md={6} lg={6}
+              >
+                <FormGroup>
+                  <label className="form-control-label" >
+                    Protocolo Externo
+                  </label>
+                  <Input
+                    placeholder='Protocolo Externo...'
+                    className="form-control"
+                    value={protocoloExterno}
+                    onChange={e => setProtocoloExterno(e.target.value)}
+                  />
+                  <small className="text-danger">
+                    {/* {erros.link_url || ""} */}
+                  </small>
+                </FormGroup>
+              </Col>
+
             </Row>
 
 

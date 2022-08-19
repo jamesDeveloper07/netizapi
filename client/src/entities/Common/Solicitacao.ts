@@ -17,6 +17,8 @@ type Solicitacao = {
 
     acao_id: number,
     acao_nome: string,
+
+    protocolo_externo_id?: string,
     
     status: 'pendente' | 'finalizada' | 'cancelada' | 'falha',
     created_at: Date,
