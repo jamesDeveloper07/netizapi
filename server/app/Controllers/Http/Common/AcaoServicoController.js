@@ -76,6 +76,24 @@ class AcaoServicoController {
     }
   }
 
+  async getByServico({ request }) {
+    const { servico_id } = request.all();
+    const status = 'ativo'
+
+    const query = AcaoServico.query()
+      .with('acao')
+      .with('servico')
+
+    if (servico_id) {
+      query.where({ servico_id })
+    }
+
+    query.where({ status })
+
+    query.orderBy('id', 'asc')
+    return await query.fetch()
+  }
+
 }
 
 module.exports = AcaoServicoController

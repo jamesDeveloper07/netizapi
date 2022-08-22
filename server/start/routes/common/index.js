@@ -43,6 +43,9 @@ Route.group(() => {
   Route.get('/acao_servico/:id', 'Common/AcaoServicoController.show').middleware(['auth:jwt']);
   Route.post('/acao_servico', 'Common/AcaoServicoController.store').middleware(['auth:jwt']);
 
+  Route.get('/get_acoes_by_servico', 'Common/AcaoServicoController.getByServico').middleware(['auth:jwt']);
+
+
   //Solicitação
   Route.get('/solicitacao', 'Common/SolicitacaoController.index').middleware(['auth:jwt']);
   Route.get('/solicitacao/:id', 'Common/SolicitacaoController.show').middleware(['auth:jwt']);
@@ -50,5 +53,8 @@ Route.group(() => {
 
   Route.get('/enviarSolicitacoesAtivacao', 'Common/SolicitacaoController.enviarSolicitacoesAtivacao').middleware(['auth:jwt']);
   Route.get('/enviarSolicitacoesDesativacao', 'Common/SolicitacaoController.enviarSolicitacoesDesativacao').middleware(['auth:jwt']);
+
+  Route.get('/executarSolicitacoesPendentes', 'Common/SolicitacaoController.executarSolicitacoesPendentes').middleware(['auth:jwt']);
+
 
 }).prefix('/api/common');

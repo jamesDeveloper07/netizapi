@@ -16,6 +16,10 @@ class Solicitacao extends Model {
     return this.belongsTo('App/Models/Common/Cliente')
   }
 
+  user() {
+    return this.belongsTo('App/Models/Security/User')
+  }
+
 }
 
 module.exports = Solicitacao

@@ -14,6 +14,8 @@ class SolicitacoesClienteAcaoServicoSchema extends Schema {
         .enu('status', ['pendente', 'finalizada', 'cancelada', 'falha'])
         .notNullable()
         .comment('Coluna referente ao status da solicitação, que pode estar pendente, finalizada, cancelada ou falha')
+      table.integer('user_id').notNullable().unsigned().references('id').inTable('security.users')
+        .comment('Usuário criador dos termos de uso.')
       table.timestamp('created_at').notNullable().defaultTo(this.fn.now())
       table.timestamp('finished_at').comment('Data referente a finalização da solicitação, quando seu status for finalizada')
       table.timestamp('updated_at').notNullable().defaultTo(this.fn.now())
