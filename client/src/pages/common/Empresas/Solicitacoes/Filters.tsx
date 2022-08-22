@@ -192,7 +192,7 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
                                     //@ts-ignore
                                     onUnselect={({ target }) => handleMultipleSelect(target, setColaboradores)}
                                     options={{
-                                        placeholder: "Selecione os colaboradore..."
+                                        placeholder: "Selecione os colaboradores..."
                                     }}
                                     value={colaboradores}
                                     data={
