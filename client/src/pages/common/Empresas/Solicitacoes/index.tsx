@@ -69,7 +69,11 @@ const SolicitacaoIndex: React.FC = ({ }) => {
 
     try {
       setExecutandoPendente(true)
-      const response = await api.get(`common/executarSolicitacoesPendentes`)
+      const response = await api.get(`common/executarSolicitacoesPendentes`, {
+        params: {
+          emp_id: empresaSelecionada?.id
+        }
+      })
 
       console.log('RESPONSE EXECUTAR SOLICITACOES PENDETES');
       console.log(response.data);
@@ -117,7 +121,8 @@ const SolicitacaoIndex: React.FC = ({ }) => {
           limit,
           sortField,
           sortOrder,
-          ...filters
+          ...filters,
+          emp_id: empresaSelecionada?.id
         }
       })
 
