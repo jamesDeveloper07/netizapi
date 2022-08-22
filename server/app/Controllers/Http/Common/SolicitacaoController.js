@@ -11,7 +11,7 @@ const RoleAndPermission = use('App/Utils/RoleAndPermission');
 
 class SolicitacaoController {
 
-  async index({ request, auth }) {
+  async index({ request, response, auth }) {
     const user = await auth.getUser();
 
     let header = request.headers()
