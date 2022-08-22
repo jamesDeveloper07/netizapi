@@ -254,7 +254,7 @@ const Form: React.FC = ({ }) => {
       {alert}
 
       <Modal
-        className="modal-dialog-centered modal-danger"
+        className="modal-dialog-centered modal-warning"
         size="md"
         isOpen={showModalInsertSolicitacao}
         toggle={() => { setShowModalInsertSolicitacao(false); setSaving(false) }}

@@ -5,7 +5,8 @@ import { Badge } from "reactstrap";
 import Table from '../../../../components/Table'
 import { MenuComportamento } from '../../../../components/Menus'
 import { Solicitacao } from '../../../../entities/Common';
-
+import Avatar from '../../../../components/Avatar';
+import { hasPermission, getContrastYIQ } from '../../../../utils';
 
 // import { Container } from './styles';
 interface Props {
@@ -23,6 +24,10 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
     {
       dataField: 'acoes',
       formatter: (cell: any, row: any) => acoesFormatter(cell, row)
+    },
+    {
+      dataField: "protocolo_externo_id",
+      text: 'Protocolo',
     },
     {
       dataField: "cliente.nome",
@@ -54,7 +59,9 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
       formatter: (cell: any, row: any) => situacaoFormater(cell, row),
       align: 'center',
       headerAlign: 'center',
-    }
+    },
+    // hasPermission('ver-todas-solicitacoes') ? getColumnColaborador() : {}
+    true ? getColumnColaborador() : {}
   ])
 
 
@@ -102,6 +109,35 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
       >
         {row.status}
       </Badge>
+    </>
+  )
+
+  function getColumnColaborador() {
+    return ({
+      dataField: 'user.name',
+      text: 'Colaborador',
+      formatter: (row: any, column: any) => colaboradorFormatter(row, column),
+      // csvFormatter: (cell, row) => colaboradorFormatterCsv(cell, row),
+      align: 'center',
+      headerAlign: 'center',
+      sort: true
+    })
+  }
+
+
+  const colaboradorFormatter = (cell: any, row: any) => (
+    <>
+      {
+        row.user &&
+        <Avatar
+          title={row.user.name}
+          user={row.user}
+          className='avatar-xs'
+          style={{
+            cursor: 'default'
+          }}
+        />
+      }
     </>
   )
 

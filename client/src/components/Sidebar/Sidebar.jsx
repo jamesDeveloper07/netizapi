@@ -775,7 +775,8 @@ class Sidebar extends React.Component {
   };
 
   createDocLinks = () => {
-    if (process.env.NODE_ENV != 'production') {
+
+    if (process.env.REACT_APP_SHOW_DOCUMENTATION && process.env.REACT_APP_SHOW_DOCUMENTATION === 'true') {
       return (
         <>
           <hr className="my-3" />

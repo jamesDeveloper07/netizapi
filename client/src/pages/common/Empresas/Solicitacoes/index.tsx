@@ -11,6 +11,7 @@ import { Solicitacao } from '../../../../entities/Common';
 
 import Table from './Table';
 import {
+  Spinner,
   Button,
   Card,
   CardBody,
@@ -39,6 +40,8 @@ const SolicitacaoIndex: React.FC = ({ }) => {
   const [lastSearch, setLastSearch] = useState({})
   const notificationAlert = useRef<NotificationAlert>(null);
 
+  const [executandoPendente, setExecutandoPendente] = useState(false)
+
   function notify(type: string, msg: string) {
     let options = {
       place: "tc",
@@ -65,7 +68,8 @@ const SolicitacaoIndex: React.FC = ({ }) => {
     e.preventDefault();
 
     try {
-      const response = await api.get(`common/enviarSolicitacoesAtivacao`)
+      setExecutandoPendente(true)
+      const response = await api.get(`common/executarSolicitacoesPendentes`)
 
       console.log('RESPONSE EXECUTAR SOLICITACOES PENDETES');
       console.log(response.data);
@@ -79,9 +83,9 @@ const SolicitacaoIndex: React.FC = ({ }) => {
       //@ts-ignore
       console.log(err.response)
       notify('danger', 'Houve um problema ao Executar as Solicitações.');
+    } finally {
+      setExecutandoPendente(false)
     }
-
-
 
   }
 
@@ -196,13 +200,19 @@ const SolicitacaoIndex: React.FC = ({ }) => {
                       <Col xs='6' style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <span >
                           <Button
+                            disabled={executandoPendente}
                             color="primary"
                             type="button"
                             onClick={handleExecutarPendentes}
                             size="sm">
-                            <span className="btn-inner--icon">
-                              <i className="ni ni-fat-add" />
-                            </span>
+                            {
+                              <Spinner
+                                hidden={!executandoPendente}
+                                className="mr-2"
+                                color="light"
+                                size="sm"
+                              />
+                            }
                             Executar Pendentes
                           </Button>
                         </span>
