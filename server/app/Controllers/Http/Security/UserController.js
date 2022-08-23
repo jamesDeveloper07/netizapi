@@ -2,8 +2,8 @@
 
 const User = use("App/Models/Security/User");
 const Hash = use('Hash')
-const Job = use('App/Jobs/ForgotPasswordEmail')
-const Bull = use('Rocketseat/Bull')
+// const Job = use('App/Jobs/ForgotPasswordEmail')
+// const Bull = use('Rocketseat/Bull')
 const Database = use('Database')
 
 class UserController {
@@ -31,7 +31,7 @@ class UserController {
             console.log(user)
             if (user && user.id) {
                 return user
-            } else {                
+            } else {
                 return response.status(400).send({
                     erroSlug: 'userNotFound',
                     message:'Usuário não encontrado'
@@ -59,7 +59,7 @@ class UserController {
             const json = user.toJSON();
             json.email_tamplate = 'emails/wellcome_to_playnee'
             json.subject = 'Bem Vindo ao Playnee'
-            Bull.add(Job.key, json)//Envia um email para o usuário
+            // Bull.add(Job.key, json)//Envia um email para o usuário
 
             return user
         } catch (error) {

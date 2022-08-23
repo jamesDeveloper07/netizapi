@@ -12,6 +12,9 @@ class ForgotPasswordEmail {
 
     async handle(job) {
         try {
+
+          console.log('HANDLE JOB FORGOT PASSWORD EMAIL')
+
             const { data } = job
 
             if (!data.recovery_password_token) throw { message: 'Token de recuperação de senha não está presente' }
@@ -21,10 +24,10 @@ class ForgotPasswordEmail {
 
             const emailTamplate = data.email_tamplate || 'emails/forgot_password'
             const subject = data.subject || 'Esqueceu sua senha?'
-            
+
             await Mail.send(emailTamplate, data, (message) => {
                 message.subject(subject)
-                message.from('no-reply@playnee.com.br')
+                message.from('no-reply@netiz.com.br')
                 message.to(data.email)
             })
         } catch (error) {
