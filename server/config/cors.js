@@ -1,6 +1,7 @@
 'use strict'
 
 module.exports = {
+  enabled: true,
   /*
   |--------------------------------------------------------------------------
   | Origin
@@ -16,7 +17,8 @@ module.exports = {
   | Function - Receives the current origin and should return one of the above values.
   |
   */
-  origin: false,
+  // origin: false,
+  origin: ['172.31.3.230', '131.255.212.18'],
 
   /*
   |--------------------------------------------------------------------------
