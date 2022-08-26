@@ -21,7 +21,7 @@ Route.group(() => {
   })
 
   Route.get('/validarhorario/:tipo', 'Api/V1/ApiController.validarHorario').middleware(['auth:jwt']);
-  Route.get('/verificarsinistro', 'Api/V1/ApiController.verificarSinistro').middleware(['auth:jwt']);
+  Route.get('/verificarsinistro', 'Api/V1/ApiController.verificarSinistro');
   Route.get('/validardocumento', 'Api/V1/ApiController.validarDocumento').middleware(['auth:jwt']);
 
 }).prefix('/api');
