@@ -11,9 +11,10 @@ class SolicitacoesClienteAcaoServicoSchema extends Schema {
       table.integer('acao_servico_id').notNullable().unsigned().references('id').inTable('common.acoes_servicos')
       table.string('protocolo_externo_id').unsigned().comment('Protocolo da solicitação em seu sistema de origem')
       table
-        .enu('status', ['pendente', 'finalizada', 'cancelada', 'falha'])
+        .enu('status', ['pendente', 'finalizada', 'cancelada', 'falha', 'invalida'])
         .notNullable()
         .comment('Coluna referente ao status da solicitação, que pode estar pendente, finalizada, cancelada ou falha')
+      table.string('status_detalhe').comment('Coluna destinada a detalhes referente ao status')
       table.integer('user_id').notNullable().unsigned().references('id').inTable('security.users')
         .comment('Usuário criador dos termos de uso.')
       table.timestamp('created_at').notNullable().defaultTo(this.fn.now())

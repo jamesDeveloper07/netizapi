@@ -55,6 +55,8 @@ Route.group(() => {
   Route.get('/enviarSolicitacoesDesativacao', 'Common/SolicitacaoController.enviarSolicitacoesDesativacao').middleware(['auth:jwt']);
 
   Route.get('/executarSolicitacoesPendentes', 'Common/SolicitacaoController.executarSolicitacoesPendentes').middleware(['auth:jwt']);
+  Route.get('/findClienteErpByDocumento/:documento', 'Common/SolicitacaoController.findClienteErpByDocumento').middleware(['auth:jwt']);
+
 
 
 }).prefix('/api/common');

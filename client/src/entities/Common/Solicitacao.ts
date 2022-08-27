@@ -21,6 +21,8 @@ type Solicitacao = {
     protocolo_externo_id?: string,
     
     status: 'pendente' | 'finalizada' | 'cancelada' | 'falha',
+    status_detalhe?: string,
+  
     created_at: Date,
     finished_at?: Date,
     updated_at: Date,

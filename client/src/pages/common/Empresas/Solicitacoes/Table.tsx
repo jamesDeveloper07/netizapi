@@ -89,7 +89,7 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
         if (row.status == 'cancelada') {
           color = 'warning'
         } else {
-          if (row.status == 'falha') {
+          if (row.status == 'falha' || row.status == 'invalida') {
             color = 'danger'
           }
         }
@@ -99,6 +99,15 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
     return color
   }
 
+  function getStatusDetalhe(row: any) {
+    if (row) {
+      if (row.status_detalhe) {
+        return row.status_detalhe 
+      }
+    }
+    return null
+  }
+
   const situacaoFormater = (cell: any, row: any) => (
     <>
       <Badge
@@ -106,6 +115,7 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
         color={getColorStatus(row)}
         className="badge-lg"
         pill
+        title={getStatusDetalhe(row)}
       >
         {row.status}
       </Badge>

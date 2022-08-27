@@ -7,7 +7,7 @@ const New: React.FC = () => {
   return (
     <>
       <SimpleHeader name="Nova Solicitação" parentName="Solicitações" />
-      <Form />
+      <Form tipo='New' />
     </>
   )
 }

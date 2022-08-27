@@ -37,7 +37,11 @@ export type FormError = {
   acaoServico?: string
 }
 
-const Form: React.FC = ({ }) => {
+type Props = {
+  tipo?: string
+}
+
+const Form: React.FC<Props> = ({ tipo }) => {
 
   const { id: solicitacao_id } = useParams() as { id?: number }
   const history = useHistory()
@@ -52,6 +56,7 @@ const Form: React.FC = ({ }) => {
   const [nomeCliente, setNomeCliente] = useState<string>();
   const [documentoCliente, setDocumentoCliente] = useState<string>();
   const [telefoneCliente, setTelefoneCliente] = useState<string>();
+  const [externoIdCliente, setExternoIdCliente] = useState<number>();
 
   const [acoesServicos, setAcoesServicos] = useState<any>([])
 
@@ -116,15 +121,58 @@ const Form: React.FC = ({ }) => {
     }
   }
 
+  async function loadClienteByDocumento(documento: any) {
+    try {
+      setNomeCliente('');
+      setTelefoneCliente('');
+      setExternoIdCliente(0);
+
+      const response = await api.get(`common/findClienteErpByDocumento/${documento}`)
+      const data = await response.data
+      // setSolicitacao(data)
+      console.log("LOAD CLIENTE")
+      console.log({ data })
+
+      setNomeCliente(data.client_name);
+      setTelefoneCliente(data.client_cell_phone);
+      setExternoIdCliente(data.client_id)
+
+    } catch (error) {
+      //@ts-ignore
+      if (error && error.response && error.response.status == 400) {
+        //@ts-ignore
+        console.log(error.response.data);
+        //@ts-ignore
+        notify('danger', error.response.data)
+      } else {
+        notify('error', 'Não foi possível carregar o Cliente')
+        console.error(error)
+      }
+    }
+  }
+
+  async function limparDados() {
+    setExternoIdCliente(0);
+    setDocumentoCliente('');
+    setNomeCliente('');
+    setTelefoneCliente('');
+    setProtocoloExterno('');
+    setAcao_servico_id(undefined);
+  }
 
   async function handleSave() {
     setErros({} as FormError)
     setSaving(true)
-    if (solicitacao.id) {
-      await update()
+    if (externoIdCliente && externoIdCliente > 0) {
+      if (solicitacao.id) {
+        await update()
+      } else {
+        //await insert()
+        setShowModalInsertSolicitacao(true)
+      }
     } else {
-      //await insert()
-      setShowModalInsertSolicitacao(true)
+      notify('danger', 'Cliente não informado!')
+      setSaving(false)
     }
     //setSaving(false)
   }
@@ -210,6 +258,7 @@ const Form: React.FC = ({ }) => {
       newCliente.nome = nomeCliente;
       newCliente.documento = documentoCliente;
       newCliente.telefone = telefoneCliente;
+      newCliente.externo_id = externoIdCliente ? externoIdCliente : 0;
       solicitacao.cliente = newCliente;
     }
 
@@ -311,22 +360,6 @@ const Form: React.FC = ({ }) => {
           <CardBody>
 
             <Row>
-              <Col sm={12} md={6} lg={6}>
-                <FormGroup>
-                  <label className="form-control-label" >
-                    Nome Cliente*
-                  </label>
-                  <Input
-                    placeholder='Nome...'
-                    className="form-control"
-                    value={nomeCliente}
-                    onChange={e => setNomeCliente(e.target.value)}
-                  />
-                  <small className="text-danger">
-                    {erros.cliente || ""}
-                  </small>
-                </FormGroup>
-              </Col>
 
               <Col sm={12} md={6} lg={6}>
                 <FormGroup>
@@ -338,12 +371,34 @@ const Form: React.FC = ({ }) => {
                     className="form-control"
                     value={documentoCliente}
                     onChange={e => setDocumentoCliente(e.target.value)}
+                    onBlur={e => loadClienteByDocumento(e.target.value)}
+                    //@ts-ignore
+                    disabled={( (tipo && tipo == 'Edit') || (externoIdCliente && externoIdCliente > 0) )}
                   />
                   <small className="text-danger">
                     {/* {erros.versao || ""} */}
                   </small>
                 </FormGroup>
               </Col>
+
+              <Col sm={12} md={6} lg={6}>
+                <FormGroup>
+                  <label className="form-control-label" >
+                    Nome Cliente*
+                  </label>
+                  <Input
+                    placeholder='Nome...'
+                    className="form-control"
+                    value={nomeCliente}
+                    onChange={e => setNomeCliente(e.target.value)}
+                    disabled={true}
+                  />
+                  <small className="text-danger">
+                    {erros.cliente || ""}
+                  </small>
+                </FormGroup>
+              </Col>
+
             </Row>
 
             <Row>
@@ -357,6 +412,7 @@ const Form: React.FC = ({ }) => {
                     className="form-control"
                     value={telefoneCliente}
                     onChange={e => setTelefoneCliente(e.target.value)}
+                    disabled={true}
                   />
                   <small className="text-danger">
                     {/* {erros.link_url || ""} */}
@@ -422,8 +478,19 @@ const Form: React.FC = ({ }) => {
                   >
                     voltar
                   </Button>
+                  {tipo && tipo == 'New' &&
+                    <Button
+                      className="ml-auto"
+                      color="link"
+                      data-dismiss="modal"
+                      type="button"
+                      onClick={() => limparDados()}
+                    >
+                      limpar
+                    </Button>
+                  }
                   <Button
-                    disabled={saving || (solicitacao && solicitacao.id > 0)}
+                    disabled={saving || (!externoIdCliente || externoIdCliente <= 0) || (solicitacao && solicitacao.id > 0)}
                     color="primary"
                     onClick={handleSave}
                   >

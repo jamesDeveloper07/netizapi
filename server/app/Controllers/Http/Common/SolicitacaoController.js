@@ -1,9 +1,9 @@
 'use strict'
 
 const Solicitacao = use('App/Models/Common/Solicitacao');
-
 const Cliente = use('App/Models/Common/Cliente');
 
+const Env = use('Env')
 const Database = use('Database')
 const axios = require('axios');
 
@@ -288,133 +288,21 @@ class SolicitacaoController {
     }
   }
 
-
-
-  async enviarSolicitacoesAtivacao({ request, response, auth }) {
-
-    try {
-
-      const status = 'pendente';
-      const acao_servico_id = 1;
-
-      const query = Solicitacao.query()
-        .with('cliente')
-        .with('acaoServico.acao')
-        .with('acaoServico.servico')
-
-      if (acao_servico_id) {
-        query.where({ acao_servico_id })
-      }
-      if (status) {
-        query.where({ status })
-      }
-      query.orderBy('id', 'asc')
-
-      const data = await query.fetch()
-      const solicitacoes = data.rows
-      var idsSolicitacoes = [];
-
-      if (solicitacoes && solicitacoes.length > 0) {
-
-        for (var index in solicitacoes) {
-          idsSolicitacoes.push(solicitacoes[index].id);
-        }
-
-        await this.enviarSolicitacao(solicitacoes)
-
-        const solicitacoesUpdate = await Solicitacao.query()
-          .whereIn('id', idsSolicitacoes)
-          .fetch();
-
-        return {
-          status: 'sucesso',
-          mensagem: 'Solicitações enviadas!',
-          solicitacoes: solicitacoesUpdate
-        }
-
-      } else {
-        return {
-          status: 'sucesso',
-          mensagem: 'Não há solicitações a serem enviadas!',
-          solicitacoes: []
-        }
-      }
-
-    } catch (error) {
-      console.error(error.response)
-      throw error
-    }
-  }
-
-  async enviarSolicitacoesDesativacao({ request, response, auth }) {
-
-    try {
-
-      const status = 'pendente';
-      const acao_servico_id = 2;
-
-      const query = Solicitacao.query()
-        .with('cliente')
-        .with('acaoServico.acao')
-        .with('acaoServico.servico')
-
-      if (acao_servico_id) {
-        query.where({ acao_servico_id })
-      }
-      if (status) {
-        query.where({ status })
-      }
-      query.orderBy('id', 'asc')
-
-      const data = await query.fetch()
-      const solicitacoes = data.rows
-      var idsSolicitacoes = [];
-
-      if (solicitacoes && solicitacoes.length > 0) {
-
-        for (var index in solicitacoes) {
-          idsSolicitacoes.push(solicitacoes[index].id);
-        }
-
-        await this.enviarSolicitacao(solicitacoes)
-
-        const solicitacoesUpdate = await Solicitacao.query()
-          .whereIn('id', idsSolicitacoes)
-          .fetch();
-
-        return {
-          status: 'sucesso',
-          mensagem: 'Solicitações enviadas!',
-          solicitacoes: solicitacoesUpdate
-        }
-
-      } else {
-        return {
-          status: 'sucesso',
-          mensagem: 'Não há solicitações a serem enviadas!',
-          solicitacoes: []
-        }
-      }
-
-    } catch (error) {
-      console.error(error.response)
-      throw error
-    }
-  }
-
   async enviarSolicitacao(solicitacoes) {
     try {
 
       //const hostApi = 'https://beta-eng.hubisp.net.br/notification/';
-      const hostApi = 'https://eng.hubisp.net.br/notification/';
-      var code = '?code=NETIZ01';
+      //const hostApi = 'https://eng.hubisp.net.br/notification/';
+      const hostApi = Env.get('HUBISP_API_HOST') + '/notification/';
+      var code = `?code=${Env.get('HUBISP_API_CODE')}`;
+      var token = Env.get('HUBISP_API_TOKEN');
       var tipo;
 
       if (solicitacoes && solicitacoes.length > 0) {
         for (var index in solicitacoes) {
 
-          console.log("\nAção Serviço");
-          console.log(solicitacoes[index].acao_servico_id);
+          // console.log("\nAção Serviço");
+          // console.log(solicitacoes[index].acao_servico_id);
 
           if (solicitacoes[index].acao_servico_id == 1) {
             tipo = 'activate';
@@ -425,12 +313,13 @@ class SolicitacaoController {
           }
 
           var solicitacao = solicitacoes[index]
-          console.log('Chegou AQUI');
-          console.log({ solicitacao });
+          // console.log('Chegou AQUI');
+          // console.log({ solicitacao });
           var cliente = solicitacao.$relations.cliente
-          console.log(cliente.nome);
-          console.log(cliente.documento);
-          console.log(cliente.telefone);
+          // console.log(cliente.externo_id);
+          // console.log(cliente.nome);
+          // console.log(cliente.documento);
+          // console.log(cliente.telefone);
 
           var key = '&key=' + cliente.documento;
           var ext = '&ext=' + cliente.telefone;
@@ -441,29 +330,68 @@ class SolicitacaoController {
             urlApi = urlApi + ext;
           }
 
-          console.log(urlApi);
+          // console.log(urlApi);
+          // console.log(token);
 
           try {
 
-            const response = await axios({
-              method: 'get',
-              url: urlApi,
-              headers: {
-                'Authorization': 'Bearer bec0c3179beb19987da59dc982600a44'
+            console.log('CLIENTE EM VALIDAÇÃO')
+
+            var clienteValidado = await this.getClienteByDocumento(cliente.documento);
+
+            if (clienteValidado) {
+              console.log('CLIENTE VALIDADO')
+              console.log({ clienteValidado })
+
+              console.log('VALIDAR SOLICITACAO X CLIENTE')
+
+              if (cliente.externo_id == clienteValidado.client_id) {
+                console.log('ID VALIDADO')
+
+                if (cliente.telefone.replace(/[^0-9]/g, '') == clienteValidado.client_cell_phone.replace(/[^0-9]/g, '')) {
+                  console.log('TELEFONE VALIDADO')
+
+                  const response = await axios({
+                    method: 'get',
+                    url: urlApi,
+                    headers: {
+                      'Authorization': 'Bearer ' + token
+                    }
+                  })
+
+                  console.log("RESPONSE (response.data)")
+                  console.log(response.data)
+
+                  if (response && response.data && response.data.response) {
+                    console.log("SUCESSO TRUE")
+                    await this.marcarComoFinalizada(solicitacoes[index])
+                  } else {
+                    if (response && response.data && !response.data.response) {
+                      await this.marcarComoFalhaOuInvalida(solicitacoes[index], 'falha', 'Falha na execução por parte da api')
+                      // throw Error(response.data.error);
+                    }
+                  }
+
+                } else {
+                  console.log('TELEFONE INVALIDADO')
+                  var status = 'invalida';
+                  var detalhe = 'Número celular da Solicitação não confere com o número celular cadastrado no ERP';
+                  await this.marcarComoFalhaOuInvalida(solicitacoes[index], status, detalhe)
+                }
+
+              } else {
+                console.log('ID INVALIDADO')
+                var status = 'invalida';
+                var detalhe = 'CLIENTE.EXTERNO_ID da Solicitação não confere com o ID do Cliente no ERP';
+                await this.marcarComoFalhaOuInvalida(solicitacoes[index], status, detalhe)
               }
-            })
 
-            console.log("RESPONSE (response.data)")
-            console.log(response.data)
 
-            if (response && response.data && response.data.response) {
-              console.log("SUCESSO TRUE")
-              await this.marcarComoFinalizada(solicitacoes[index])
             } else {
-              if (response && response.data && !response.data.response) {
-                await this.marcarComoFalha(solicitacoes[index])
-                throw Error(response.data.error);
-              }
+              console.log('CLIENTE INVÁLIDO')
+              var status = 'invalida';
+              var detalhe = 'Cliente inválido';
+              await this.marcarComoFalhaOuInvalida(solicitacoes[index], status, detalhe)
             }
 
           } catch (error) {
@@ -498,13 +426,13 @@ class SolicitacaoController {
 
   }
 
-  async marcarComoFalha(solicitacao) {
+  async marcarComoFalhaOuInvalida(solicitacao, status, detalhe) {
     try {
-      // console.log('Marcando Como FINALIZADA')
+      // console.log('Marcando Como FALHA')
       var id = solicitacao.id;
       const solicitacaoFind = await Solicitacao.findBy({ id })
       if (solicitacaoFind) {
-        var sql = `UPDATE common.solicitacoes_cliente_acao_servicos SET status ='falha', updated_at='${new Date().toISOString()}' WHERE id=${id} and finished_at is null`;
+        var sql = `UPDATE common.solicitacoes_cliente_acao_servicos SET status = '${status}', status_detalhe = '${detalhe}', updated_at='${new Date().toISOString()}' WHERE id=${id} and finished_at is null`;
         await Database.raw(sql);
       } else {
         Logger.warn(`Solicitação de id ${solicitacao.id} não foi encontrada para marcação de finalização!`)
@@ -515,6 +443,216 @@ class SolicitacaoController {
 
   }
 
+
+  async findClienteErpByDocumento({ request, response, params, auth }) {
+    const { documento } = params;
+
+    if (!documento) {
+      return response.status(400).send('Documento não informado!')
+    }
+
+    var documentoValido = false;
+    documentoValido = await this.validarCPF(documento);
+
+    if (!documentoValido) {
+      console.log('PRIMEIRO IF DOC INVALIDO - CPF')
+      documentoValido = await this.validarCNPJ(documento);
+    }
+
+    if (!documentoValido) {
+      console.log('SEGUNDO IF DOC INVALIDO - CNPJ')
+      return response.status(400).send('Documento Inválido!')
+    }
+
+    var clienteValidado = await this.getClienteByDocumento(documento);
+
+    if (clienteValidado) {
+      console.log('CLIENTE VALIDADO')
+      // console.log({ clienteValidado })
+
+      var cliente = {
+        client_id: clienteValidado.client_id,
+        client_name: clienteValidado.client_name,
+        client_type_tx_id: clienteValidado.client_type_tx_id,
+        client_cell_phone: clienteValidado.client_cell_phone,
+        client_email: clienteValidado.client_email,
+        contracts: clienteValidado.contracts,
+        blocked_contracts: clienteValidado.blocked_contracts
+      }
+
+      return cliente
+    } else {
+      response.status(400).send('Cliente não encontrado!')
+    }
+
+
+  }
+
+  async getClienteByDocumento(documento) {
+
+    try {
+
+      if (!documento) {
+        console.log('Documento não informado');
+        return null;
+      }
+
+      var documentoValido = false;
+      documentoValido = await this.validarCPF(documento);
+
+      if (!documentoValido) {
+        documentoValido = await this.validarCNPJ(documento);
+      }
+
+      if (!documentoValido) {
+        console.log('Documento não válido');
+        return null;
+      }
+
+      console.log('Documento válidado');
+
+      const host = Env.get('VOALLE_PABX_HOST');
+      const evento = '/CLIENT_VALIDATE'
+      var token = Env.get('VOALLE_TOKEN');
+
+      var urlApi = host + evento;
+      console.log(urlApi);
+
+      var doc = documento.replace(/[^\d]+/g, '');
+
+      const response = await axios({
+        method: 'post',
+        url: urlApi,
+        responseType: 'json',
+        headers: {
+          "content-type": "application/json"
+        },
+        data: {
+          codigo: doc,
+          token
+        }
+      })
+
+      if (response && response.data) {
+        console.log("TEM RESPONSE")
+
+        var clients = response.data.clients;
+
+        if (clients && clients.length > 0) {
+          console.log("CLIENTE ENCONTRADO")
+          // console.log(clients[0])
+          return clients[0];
+        } else {
+          console.log("CLIENTE NÃO ENCONTRADO")
+          return null;
+        }
+
+      } else {
+        console.log("NÂO TEM RESPONSE")
+        return null;
+      }
+
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+
+  }
+
+  async validarCPF(strCPF) {
+
+    strCPF = strCPF.replace(/[^\d]+/g, '');
+    if (strCPF == '') return false;
+    if (strCPF.length != 11) return false;
+    // Elimina CNPJs invalidos conhecidos
+    if (strCPF == "00000000000" ||
+      strCPF == "11111111111" ||
+      strCPF == "22222222222" ||
+      strCPF == "33333333333" ||
+      strCPF == "44444444444" ||
+      strCPF == "55555555555" ||
+      strCPF == "66666666666" ||
+      strCPF == "77777777777" ||
+      strCPF == "88888888888" ||
+      strCPF == "99999999999") return false;
+
+    var Soma;
+    var Resto;
+    Soma = 0;
+
+    for (var i = 1; i <= 9; i++) {
+      Soma = Soma + parseInt(strCPF.substring(i - 1, i)) * (11 - i);
+    }
+    Resto = (Soma * 10) % 11;
+    if ((Resto == 10) || (Resto == 11)) {
+      Resto = 0;
+    }
+    if (Resto != parseInt(strCPF.substring(9, 10))) {
+      return false;
+    }
+
+    Soma = 0;
+
+    for (var i = 1; i <= 10; i++) {
+      Soma = Soma + parseInt(strCPF.substring(i - 1, i)) * (12 - i);
+    }
+    Resto = (Soma * 10) % 11;
+    if ((Resto == 10) || (Resto == 11)) {
+      Resto = 0;
+    }
+    if (Resto != parseInt(strCPF.substring(10, 11))) {
+      return false;
+    }
+    return true;
+  }
+
+  async validarCNPJ(cnpj) {
+
+    cnpj = cnpj.replace(/[^\d]+/g, '');
+    if (cnpj == '') return false;
+    if (cnpj.length != 14) return false;
+
+    // Elimina CNPJs invalidos conhecidos
+    if (cnpj == "00000000000000" ||
+      cnpj == "11111111111111" ||
+      cnpj == "22222222222222" ||
+      cnpj == "33333333333333" ||
+      cnpj == "44444444444444" ||
+      cnpj == "55555555555555" ||
+      cnpj == "66666666666666" ||
+      cnpj == "77777777777777" ||
+      cnpj == "88888888888888" ||
+      cnpj == "99999999999999") return false;
+
+    // Valida DVs
+    var tamanho = cnpj.length - 2;
+    var numeros = cnpj.substring(0, tamanho);
+    var digitos = cnpj.substring(tamanho);
+    var soma = 0;
+    var pos = tamanho - 7;
+    for (var i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    var resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+    if (resultado != digitos.charAt(0)) return false;
+
+    tamanho = tamanho + 1;
+    numeros = cnpj.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    for (var i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2)
+        pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+    if (resultado != digitos.charAt(1)) {
+      return false;
+    }
+
+    return true;
+  }
 
 }
 
