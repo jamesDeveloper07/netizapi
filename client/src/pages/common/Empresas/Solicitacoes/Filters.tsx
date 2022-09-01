@@ -250,6 +250,19 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
         setDataInicialCriacaoSolicitacoes(getDataHoje())
         setDataFinalCriacaoSolicitacoes(getDataHoje())
 
+        setDataInicialExecucaoSolicitacoes(null)
+        setDataFinalExecucaoSolicitacoes(null)
+
+        setProtocoloExterno('')
+
+        setCliente('')
+        setPesquisarTelefoneCliente(false)
+
+        setAcaoServico(null);
+        setServico(null);
+
+        setColaboradores([]);
+
         setPesquisarTelefoneCliente(false)
     }
 
