@@ -23,4 +23,8 @@ Route.group(() => {
   Route.get('/:codigo', 'Shortener/ShortenerController.redirect');
   Route.post('/shorten', 'Shortener/ShortenerController.shorten');
 
+  Route.get('/:codigo', 'Shortener/ShortenerController.redirect');
+  Route.post('/dataencrypt', 'Shortener/ShortenerController.encrypt');
+  Route.post('/hashdecrypt', 'Shortener/ShortenerController.decrypt');
+
 }).prefix('/api/shortener');
