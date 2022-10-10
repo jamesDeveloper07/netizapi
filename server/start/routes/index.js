@@ -19,6 +19,8 @@ require("./api");
 require("./common");
 require("./security");
 require("./shortener");
+require("./voalle");
+
 
 Route.get('/', () => {
   return { greeting: 'Hello world in JSON' }
