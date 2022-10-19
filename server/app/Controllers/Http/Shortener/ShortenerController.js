@@ -47,8 +47,7 @@ class ShortenerController {
         var link = await Link.create(dataLink);
 
         link.codigo = this.encode(link.id.toString());
-        // link.codigo = this.encode("999999999999999999");
-
+        
         link.save();
 
         return link;
