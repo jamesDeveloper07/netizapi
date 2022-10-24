@@ -56,11 +56,12 @@ class VoalleController {
 
       const contracts = await Database
         .connection('pgvoalle')
-        .raw(`SELECT fat.id, fat.client_id, fat.contract_id, fat.title, fat.competence, fat.expiration_date, fat.title_amount,
+        .raw(`SELECT fat.id, fat.client_id, fat.contract_id, cont.contract_number, fat.title, fat.competence, fat.expiration_date, fat.title_amount,
         (fat.balance = 0) as pago, (fat.balance > 0 and fat.expiration_date < now()) as atrasado, fat.typeful_line as cod_barras,
         pag.receipt_date
 
         FROM erp.financial_receivable_titles fat
+        left join erp.contracts cont on (fat.contract_id = cont.id)
         left join erp.financial_receipt_titles pag on (fat.id = financial_receivable_title_id and pag.deleted = false)
 
         where fat.client_id = ${client_id}
@@ -87,11 +88,12 @@ class VoalleController {
 
       const contracts = await Database
         .connection('pgvoalle')
-        .raw(`SELECT fat.id, fat.client_id, fat.contract_id, fat.title, fat.competence, fat.expiration_date, fat.title_amount,
+        .raw(`SELECT fat.id, fat.client_id, fat.contract_id, cont.contract_number, fat.title, fat.competence, fat.expiration_date, fat.title_amount,
         (fat.balance = 0) as pago, (fat.balance > 0 and fat.expiration_date < now()) as atrasado, fat.typeful_line as cod_barras,
         pag.receipt_date
 
         FROM erp.financial_receivable_titles fat
+        left join erp.contracts cont on (fat.contract_id = cont.id)
         left join erp.financial_receipt_titles pag on (fat.id = financial_receivable_title_id and pag.deleted = false)
 
         where fat.contract_id = ${contract_id}
