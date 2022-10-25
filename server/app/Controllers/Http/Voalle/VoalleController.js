@@ -30,7 +30,7 @@ class VoalleController {
         where fat.client_id = cont.client_id
         and fat.contract_id = cont.id
             and ((fat.deleted = false) AND (fat.type = 2) AND (fat.bill_title_id IS NULL) AND (fat.finished = false) AND (fat.renegotiated = false))
-        and ((fat.expiration_date + INTERVAL '1 DAY') < now())
+        and (fat.balance > 0 and (fat.expiration_date + INTERVAL '1 DAY') < now() )
         ) as total_faturas_atraso
 
         FROM erp.contracts cont
