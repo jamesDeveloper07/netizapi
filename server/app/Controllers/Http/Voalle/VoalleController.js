@@ -24,7 +24,14 @@ class VoalleController {
 		    cont.stage, cont.v_stage, cont.status, cont.v_status,
 		    cont.unblock_attempt_count,
 		    CASE WHEN cont.unblock_attempt_count > 0 THEN false ELSE true END AS can_unblock,
-        tag.service_tag, tag.title, tag.description as tag_description
+        tag.service_tag, tag.title, tag.description as tag_description,
+
+        (select count(fat.id) FROM erp.financial_receivable_titles fat
+        where fat.client_id = cont.client_id
+        and fat.contract_id = cont.id
+            and ((fat.deleted = false) AND (fat.type = 2) AND (fat.bill_title_id IS NULL) AND (fat.finished = false) AND (fat.renegotiated = false))
+        and ((fat.expiration_date + INTERVAL '1 DAY') < now())
+        ) as total_faturas_atraso
 
         FROM erp.contracts cont
         left join erp.people_addresses addr ON (addr.id = cont.people_address_id and addr.deleted is FALSE)
