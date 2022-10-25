@@ -61,7 +61,7 @@ class VoalleController {
       const { client_id } = params;
 
 
-      const contracts = await Database
+      const faturas = await Database
         .connection('pgvoalle')
         .raw(`SELECT fat.id, fat.client_id, fat.contract_id, cont.contract_number, fat.title, fat.competence, fat.expiration_date, fat.title_amount,
         (fat.balance = 0) as pago, (fat.balance > 0 and ((fat.expiration_date + INTERVAL '1 DAY') < now()) ) as atrasado, fat.typeful_line as cod_barras,
@@ -78,7 +78,7 @@ class VoalleController {
       // later close the connection
       Database.close(['pgvoalle']);
 
-      return contracts.rows;
+      return faturas.rows;
 
     } catch (error) {
       console.error('Erro no metodo getFaturasByClientId api/voalle \n', error)
@@ -93,7 +93,7 @@ class VoalleController {
       const { contract_id } = params;
 
 
-      const contracts = await Database
+      const faturas = await Database
         .connection('pgvoalle')
         .raw(`SELECT fat.id, fat.client_id, fat.contract_id, cont.contract_number, fat.title, fat.competence, fat.expiration_date, fat.title_amount,
         (fat.balance = 0) as pago, (fat.balance > 0 and ((fat.expiration_date + INTERVAL '1 DAY') < now()) ) as atrasado, fat.typeful_line as cod_barras,
@@ -110,7 +110,7 @@ class VoalleController {
       // later close the connection
       Database.close(['pgvoalle']);
 
-      return contracts.rows;
+      return faturas.rows;
 
     } catch (error) {
       console.error('Erro no metodo getFaturasByContractId api/voalle \n', error)
@@ -118,10 +118,36 @@ class VoalleController {
     }
   }
 
+  async getFaturaById({ request, response, params }) {
+    try {
+      console.log('GET FATURA BY ID');
+      const { id } = params;
 
 
+      const faturas = await Database
+        .connection('pgvoalle')
+        .raw(`SELECT fat.id, fat.client_id, fat.contract_id, cont.contract_number, fat.title, fat.competence, fat.expiration_date, fat.title_amount,
+        (fat.balance = 0) as pago, (fat.balance > 0 and ((fat.expiration_date + INTERVAL '1 DAY') < now()) ) as atrasado, fat.typeful_line as cod_barras,
+        pag.receipt_date
 
+        FROM erp.financial_receivable_titles fat
+        left join erp.contracts cont on (fat.contract_id = cont.id)
+        left join erp.financial_receipt_titles pag on (fat.id = financial_receivable_title_id and pag.deleted = false)
 
+        where fat.id = ${id}
+        and ((fat.deleted = false) AND (fat.type = 2) AND (fat.bill_title_id IS NULL) AND (fat.finished = false) AND (fat.renegotiated = false))
+        limit 1`);
+
+      // later close the connection
+      Database.close(['pgvoalle']);
+
+      return faturas.rows[0];
+
+    } catch (error) {
+      console.error('Erro no metodo getFaturaById api/voalle \n', error)
+      return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo getFaturaById api/voalle' })
+    }
+  }
 
 
 }
