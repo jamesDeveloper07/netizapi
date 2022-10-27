@@ -40,6 +40,7 @@ class VoalleController {
         left join erp.contract_service_tags tag on (item.contract_service_tag_id = tag.id and tag.deleted is FALSE )
 
         where cont.client_id = ${client_id}
+		    and cont.status not in (4,9) -- não esteja cancelado ou encerrado
         and cont.deleted is false
         ORDER BY cont.id ASC`);
 
@@ -73,6 +74,8 @@ class VoalleController {
 
         where fat.client_id = ${client_id}
         and ((fat.deleted = false) AND (fat.type = 2) AND (fat.bill_title_id IS NULL) AND (fat.finished = false) AND (fat.renegotiated = false))
+        and cont.status not in (4,9) -- não esteja cancelado ou encerrado
+        and cont.deleted is false
         ORDER BY id DESC LIMIT 13`);
 
       // later close the connection
@@ -105,6 +108,8 @@ class VoalleController {
 
         where fat.contract_id = ${contract_id}
         and ((fat.deleted = false) AND (fat.type = 2) AND (fat.bill_title_id IS NULL) AND (fat.finished = false) AND (fat.renegotiated = false))
+        and cont.status not in (4,9) -- não esteja cancelado ou encerrado
+        and cont.deleted is false
         ORDER BY id DESC LIMIT 13`);
 
       // later close the connection
