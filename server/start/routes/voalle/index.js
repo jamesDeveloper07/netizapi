@@ -21,6 +21,7 @@ Route.group(() => {
   })
 
   Route.get('/getcontratos/:client_id', 'Voalle/VoalleController.getContratosByClientId');
+  Route.get('/getservicosbycontrato/:contract_id', 'Voalle/VoalleController.getServicesByContractId');
   Route.get('/getfaturasbycliente/:client_id', 'Voalle/VoalleController.getFaturasByClientId');
   Route.get('/getfaturasbycontrato/:contract_id', 'Voalle/VoalleController.getFaturasByContractId');
   Route.get('/getfaturabyid/:id', 'Voalle/VoalleController.getFaturaById');
