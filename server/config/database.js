@@ -92,6 +92,18 @@ module.exports = {
       database: Env.get('DB_DATABASE_VOALLE', 'adonis')
     },
     debug: Env.get('DB_DEBUG_VOALLE', false)
+  },
+
+  pgappnetiz: {
+    client: Env.get('DB_CONNECTION_APP', 'pg'),
+    connection: {
+      host: Env.get('DB_HOST_APP', 'localhost'),
+      port: Env.get('DB_PORT_APP', ''),
+      user: Env.get('DB_USER_APP', 'root'),
+      password: Env.get('DB_PASSWORD_APP', ''),
+      database: Env.get('DB_DATABASE_APP', 'adonis')
+    },
+    debug: Env.get('DB_DEBUG_APP', false)
   }
 
 }

@@ -17,6 +17,7 @@
 const Route = use('Route')
 require("./api");
 require("./common");
+require("./report");
 require("./security");
 require("./shortener");
 require("./voalle");
