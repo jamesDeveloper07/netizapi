@@ -25,6 +25,8 @@ import Solicitacoes from "../pages/common/Empresas/Solicitacoes";
 import NewSolicitacao from "../pages/common/Empresas/Solicitacoes/New";
 import EditSolicitacao from "../pages/common/Empresas/Solicitacoes/Edit";
 
+import DashboardAppNetiz from "../pages/dashboard/appNetiz";
+
 import Notificacoes from '../pages/security/Notificacoes'
 
 import Proto from '../pages/proto/proto'
@@ -159,6 +161,12 @@ const paths = [
     {
         path: '/solicitacoes/:id/edit',
         component: EditSolicitacao,
+        layout: '/admin'
+    },
+
+    {
+        path: '/dashboard/app-netiz',
+        component: DashboardAppNetiz,
         layout: '/admin'
     },
 
