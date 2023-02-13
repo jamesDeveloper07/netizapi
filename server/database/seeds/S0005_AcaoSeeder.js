@@ -27,6 +27,12 @@ class AcaoSeeder {
       descricao: 'Ação de desativação de algum serviço',
       status: 'ativo'
     })
+
+    const reenvio = await Acao.create({
+      nome: 'Reenvio de Ativação',
+      descricao: 'Ação de reenvio de ativação de algum serviço',
+      status: 'ativo'
+    })
   }
 }
 

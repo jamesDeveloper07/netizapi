@@ -29,6 +29,12 @@ class AcaoServicoSeeder {
       status: 'ativo'
     })
 
+    const reenvoDeezer = await AcaoServico.create({
+      servico_id: '1',
+      acao_id: '3',
+      status: 'ativo'
+    })
+
     const ativacaoNetflix = await AcaoServico.create({
       servico_id: '2',
       acao_id: '1',

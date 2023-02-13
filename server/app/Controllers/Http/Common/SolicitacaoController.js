@@ -150,11 +150,16 @@ class SolicitacaoController {
 
     try {
 
-      const user = await auth.getUser();
-
       const dataSolicitacao = request.only(['cliente_id', 'acao_servico_id', 'status', 'finished_at', 'protocolo_externo_id'])
-
       const dataCliente = request.only(['cliente'])
+
+      const user = await auth.getUser();
+      let header = request.headers()
+      let empresa_id = header.empresa_id
+
+      let expression = '(relacionamento)'
+      const isRelacionamento = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
+
 
       if (dataSolicitacao && !dataSolicitacao.status) {
         dataSolicitacao.status = 'pendente'
@@ -163,12 +168,89 @@ class SolicitacaoController {
       if (dataSolicitacao && !dataSolicitacao.acao_servico_id) {
         response.status(400).send('Serviço/Ação não informado')
         return
+      } else {
+
+        if (dataSolicitacao.acao_servico_id != 1 && dataSolicitacao.acao_servico_id != 2 && dataSolicitacao.acao_servico_id != 7) {
+          response.status(400).send('Serviço/Ação não autorizado para cadastro')
+          return
+        } else {
+          if (isRelacionamento && dataSolicitacao.acao_servico_id != 7) {
+            response.status(400).send('Serviço/Ação não autorizado para o seu perfil')
+            return
+          }
+        }
       }
 
       if (dataSolicitacao && !dataSolicitacao.status) {
         response.status(400).send('Status não informado')
         return
       }
+
+
+      //Validação de solicitação anterior para o cliente
+      if (dataCliente && dataCliente.cliente && dataCliente.cliente.documento) {
+        dataCliente.cliente.documento = dataCliente.cliente.documento.replace(/[^0-9]/g, '');
+
+        const query = Solicitacao.query()
+          .with('cliente')
+          .with('acaoServico.acao')
+          .with('acaoServico.servico')
+          .orderBy('created_at', 'desc')
+
+        query.whereRaw(`cliente_id in (SELECT id FROM common.clientes where documento like '${dataCliente.cliente.documento}')
+           and status in ('finalizada', 'pendente') and deleted_at is null`)
+
+        const solicitacaoAnterior = await query.first();
+
+        console.log('\n\nCHEGOU AQUI\n');
+
+        console.log('\n\nValidação\n');
+        console.log({ solicitacaoAnterior });
+
+        var canStore = true;
+
+        //POde Cadastrar? : A ultima solicitação deve ser de ativação ou reativação, e deve estar finalizada
+        var existeAnterior = (solicitacaoAnterior && solicitacaoAnterior.id > 0);
+        if (existeAnterior) {
+
+          console.log('Status: ' + solicitacaoAnterior.status);
+          console.log('Ação_Servico: ' + solicitacaoAnterior.acao_servico_id);
+
+          if (solicitacaoAnterior.status && solicitacaoAnterior.status == 'pendente') {
+            canStore = false;
+            response.status(400).send('Existe uma solicitação ainda pendente para este cliente.');
+            return
+          } else {
+            //se ativação
+            if (dataSolicitacao.acao_servico_id == 1) {
+              if (solicitacaoAnterior.acao_servico_id != 2) {
+                canStore = false;
+                response.status(400).send('Já existe uma solicitação de ativação executada para este cliente.');
+                return
+              }
+            } else {
+              //se reenvio de ativação
+              if (dataSolicitacao.acao_servico_id == 7) {
+                if (solicitacaoAnterior.acao_servico_id == 2) {
+                  canStore = false;
+                  response.status(400).send('Não existe uma solicitação de ativação executada para este cliente.');
+                  return
+                }
+              } else {
+                if (dataSolicitacao.acao_servico_id == 2) {
+                  if (solicitacaoAnterior.acao_servico_id == 2) {
+                    canStore = false;
+                    response.status(400).send('Já existe uma solicitação de desativação executada para este cliente.');
+                    return
+                  }
+                }
+              }
+            }
+          }
+        }
+
+      }
+
 
       if (dataSolicitacao && !dataSolicitacao.cliente_id) {
         // console.log('Cliente_id não informado');
@@ -304,7 +386,7 @@ class SolicitacaoController {
           // console.log("\nAção Serviço");
           // console.log(solicitacoes[index].acao_servico_id);
 
-          if (solicitacoes[index].acao_servico_id == 1) {
+          if (solicitacoes[index].acao_servico_id == 1 || solicitacoes[index].acao_servico_id == 7) {
             tipo = 'activate';
           }
 

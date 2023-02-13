@@ -1,11 +1,18 @@
 'use strict'
 
 const AcaoServico = use('App/Models/Common/AcaoServico');
+const RoleAndPermission = use('App/Utils/RoleAndPermission');
 
 class AcaoServicoController {
 
-  async index({ request }) {
+  async index({ request, auth}) {
     const { id, acao_id, servico_id, status } = request.all();
+    const user = await auth.getUser();
+    let header = request.headers()
+    let empresa_id = header.empresa_id
+
+    let expression = '(relacionamento)'
+    const isRelacionamento = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
 
     const query = AcaoServico.query()
       .with('acao')
@@ -15,9 +22,16 @@ class AcaoServicoController {
       query.where({ id })
     }
 
-    if (acao_id) {
-      query.where({ acao_id })
+    if(isRelacionamento){
+      //somente pode ter acesso a Reenvio
+      query.where({acao_id: '3'})
+    }else{
+      if (acao_id) {
+        query.where({ acao_id })
+      }
     }
+
+
 
     if (servico_id) {
       query.where({ servico_id })
