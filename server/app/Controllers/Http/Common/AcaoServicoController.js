@@ -5,7 +5,7 @@ const RoleAndPermission = use('App/Utils/RoleAndPermission');
 
 class AcaoServicoController {
 
-  async index({ request, auth}) {
+  async index({ request, auth }) {
     const { id, acao_id, servico_id, status } = request.all();
     const user = await auth.getUser();
 
@@ -32,15 +32,14 @@ class AcaoServicoController {
       query.where({ id })
     }
 
-    if(isRelacionamento){
-      //somente pode ter acesso a Reenvio
-      query.where({acao_id: '3'})
-    }else{
-      if (acao_id) {
-        query.where({ acao_id })
+    if (acao_id) {
+      query.where({ acao_id })
+    } else {
+      if (isRelacionamento) {
+        //somente pode ter acesso a Reenvio
+        query.where({ acao_id: '3' })
       }
     }
-
 
 
     if (servico_id) {
