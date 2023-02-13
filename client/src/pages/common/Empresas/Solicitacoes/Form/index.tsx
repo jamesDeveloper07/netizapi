@@ -100,6 +100,7 @@ const Form: React.FC<Props> = ({ tipo }) => {
         {
           params: {
             servico_id: 1,
+            tipo,
             emp_id: empresaSelecionada?.id
           }
         })
