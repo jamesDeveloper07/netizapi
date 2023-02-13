@@ -8,8 +8,18 @@ class AcaoServicoController {
   async index({ request, auth}) {
     const { id, acao_id, servico_id, status } = request.all();
     const user = await auth.getUser();
+
     let header = request.headers()
     let empresa_id = header.empresa_id
+
+    if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
+      const { emp_id } = request.only(['emp_id'])
+      empresa_id = emp_id
+    }
+
+    if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
+      response.status(400).send('Empresa não informada')
+    }
 
     let expression = '(relacionamento)'
     const isRelacionamento = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)

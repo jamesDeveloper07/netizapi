@@ -99,7 +99,8 @@ const Form: React.FC<Props> = ({ tipo }) => {
       const response = await api.get(`/common/acao_servico`,
         {
           params: {
-            servico_id: 1
+            servico_id: 1,
+            emp_id: empresaSelecionada?.id
           }
         })
       setAcoesServicos(response.data)
