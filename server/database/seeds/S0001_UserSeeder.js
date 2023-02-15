@@ -37,6 +37,20 @@ class UserSeeder {
       password: 'At3nd@2022!#',
     })
 
+    const relacionamento = await User.create({
+      name: 'Relacionamento',
+      username: 'relacionamento',
+      email: 'relacionamento@netiz.com.br',
+      password: 'R3lac@2022!#',
+    })
+
+    const financeiro = await User.create({
+      name: 'Financeiro',
+      username: 'financeiro',
+      email: 'financeiro@netiz.com.br',
+      password: 'F1nan@2022!#',
+    })
+
   }
 }
 

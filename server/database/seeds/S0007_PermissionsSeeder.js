@@ -22,6 +22,9 @@ class PermissionsSeeder {
     try {
 
       const administrador = await Role.findBy({ slug: 'administrador' }, trx)
+      const supervisor = await Role.findBy({ slug: 'supervisor' }, trx)
+      const relacionamento = await Role.findBy({ slug: 'relacionamento' }, trx)
+      const financeiro = await Role.findBy({ slug: 'financeiro' }, trx)
 
       const permissionGerenciarTermo = await Permission.findOrCreate({ slug: 'gerenciar-termos-uso' }, {
         slug: 'gerenciar-termos-uso',
@@ -42,6 +45,18 @@ class PermissionsSeeder {
       ], trx);
 
       await administrador.permissions().attach([
+        permissionVerTodasSolicitacoes.id
+      ], trx);
+
+      await supervisor.permissions().attach([
+        permissionVerTodasSolicitacoes.id
+      ], trx);
+
+      await relacionamento.permissions().attach([
+        permissionVerTodasSolicitacoes.id
+      ], trx);
+
+      await financeiro.permissions().attach([
         permissionVerTodasSolicitacoes.id
       ], trx);
 

@@ -21,6 +21,7 @@ require("./report");
 require("./security");
 require("./shortener");
 require("./voalle");
+require("./watch");
 
 
 Route.get('/', () => {

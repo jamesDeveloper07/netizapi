@@ -25,6 +25,7 @@ class RoleSeeder {
       const supervisor = await User.findBy({ username: 'supervisor' }, trx)
       const atendente = await User.findBy({ username: 'atendente' }, trx)
       const relacionamento = await User.findBy({ username: 'relacionamento' }, trx)
+      const financeiro = await User.findBy({ username: 'financeiro' }, trx)
 
       const roleAdministrador = await Role.findOrCreate({ slug: 'administrador' }, {
         name: 'Administrador',
@@ -50,6 +51,12 @@ class RoleSeeder {
         description: 'privilégios de relacionamento com o cliente'
       }, trx)
 
+      const roleFinanceiro = await Role.findOrCreate({ slug: 'financeiro' }, {
+        name: 'Financeiro',
+        slug: 'financeiro',
+        description: 'privilégios de financeiro'
+      }, trx)
+
       await trx.commit();
 
       await administrador.roles().attach([
@@ -66,6 +73,10 @@ class RoleSeeder {
 
       await relacionamento.roles().attach([
         roleRelacionamento.id
+      ], trx);
+
+      await financeiro.roles().attach([
+        roleFinanceiro.id
       ], trx);
 
     } catch (error) {
