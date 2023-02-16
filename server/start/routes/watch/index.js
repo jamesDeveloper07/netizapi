@@ -20,7 +20,13 @@ Route.group(() => {
     return { greeting: 'Hello world in JSON - NETIZAPI - WATCH BRASIL' }
   })
 
-  Route.post('/tokengeneration', 'Watch/WatchController.tokengeneration');
+  Route.post('/tokengeneration', 'Watch/WatchController.tokenGeneration');
   Route.post('/teste', 'Watch/WatchController.teste');
+  Route.get('/getaccesstoken', 'Watch/WatchController.getAccessToken');
+  Route.get('/getaccesstokenteste', 'Watch/WatchController.getAccessTokenTeste');
+
+  Route.get('/buscarpacote', 'Watch/WatchController.buscarPacote').middleware(['auth:jwt']);
+
+
 
 }).prefix('/api/watch');
