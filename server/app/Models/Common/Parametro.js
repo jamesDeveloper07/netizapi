@@ -4,18 +4,11 @@
 const Model = use('Model')
 
 class Parametro extends Model {
+  static get table() {
+    return 'common.parametros'
+  }
 
-    static get table() {
-        return 'common.parametros'
-    }
 
-    static get updatedAtColumn() {
-        return null
-    }
-
-    static get createdAtColumn() {
-        return null
-    }
 }
 
 module.exports = Parametro
