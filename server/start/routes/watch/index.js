@@ -20,13 +20,23 @@ Route.group(() => {
     return { greeting: 'Hello world in JSON - NETIZAPI - WATCH BRASIL' }
   })
 
+  //usado pela watch para nos enviar o code que será trocado por um access_token
   Route.post('/tokengeneration', 'Watch/WatchController.tokenGeneration');
-  Route.post('/teste', 'Watch/WatchController.teste');
+
+  //provavelmente serão removidos após os testes
   Route.get('/getaccesstoken', 'Watch/WatchController.getAccessToken');
   Route.get('/getaccesstokenteste', 'Watch/WatchController.getAccessTokenTeste');
 
-  Route.get('/buscarpacote', 'Watch/WatchController.buscarPacote').middleware(['auth:jwt']);
+  //endpoints
+  Route.get('/v1/buscarpacote', 'Watch/WatchController.buscarPacote').middleware(['auth:jwt']);
+  Route.get('/v1/buscarticket', 'Watch/WatchController.buscarTicketV1').middleware(['auth:jwt']);
+  Route.get('/v2/buscarticket', 'Watch/WatchController.buscarTicketV2').middleware(['auth:jwt']);
 
+  Route.post('/v2/inserirticket', 'Watch/WatchController.inserirTicket').middleware(['auth:jwt']);
+  Route.post('/v2/atualizartelefone', 'Watch/WatchController.atualizarTelefone').middleware(['auth:jwt']);
+  Route.post('/v1/reenviaremailativacao', 'Watch/WatchController.reenviarEmailAtivacao').middleware(['auth:jwt']);
 
+  Route.post('/v1/atualizarstatus', 'Watch/WatchController.atualizarStatus').middleware(['auth:jwt']);
+  Route.post('/v1/deletarticket', 'Watch/WatchController.deletarTicket').middleware(['auth:jwt']);
 
 }).prefix('/api/watch');
