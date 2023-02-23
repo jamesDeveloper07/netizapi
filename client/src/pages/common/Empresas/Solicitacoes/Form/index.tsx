@@ -208,7 +208,13 @@ const Form: React.FC<Props> = ({ tipo }) => {
       afterSave('Solicitação Salva');
     } catch (error) {
       console.error(error)
-      notify('danger', 'Não foi possível salvar a Solicitação')
+      //@ts-ignore
+      if (error?.response?.data) {
+        //@ts-ignore
+        notify('danger', error.response.data)
+      } else {
+        notify('danger', 'Não foi possível salvar a Solicitação')
+      }
       //@ts-ignore
       throwError(error.response)
     } finally {
@@ -227,7 +233,7 @@ const Form: React.FC<Props> = ({ tipo }) => {
       setSolicitacao(data)
       afterSave('Solicitação Alterada');
     } catch (error) {
-      console.error(error)
+      console.log(error)
       notify('danger', 'Não foi possível alterar a Solicitação')
       //@ts-ignore
       throwError(error.response)
@@ -375,7 +381,7 @@ const Form: React.FC<Props> = ({ tipo }) => {
                     onChange={e => setDocumentoCliente(e.target.value)}
                     onBlur={e => loadClienteByDocumento(e.target.value)}
                     //@ts-ignore
-                    disabled={( (tipo && tipo == 'Edit') || (externoIdCliente && externoIdCliente > 0) )}
+                    disabled={((tipo && tipo == 'Edit') || (externoIdCliente && externoIdCliente > 0))}
                   />
                   <small className="text-danger">
                     {/* {erros.versao || ""} */}
