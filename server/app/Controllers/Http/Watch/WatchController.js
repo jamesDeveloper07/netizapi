@@ -38,6 +38,11 @@ class WatchController {
 
     } catch (error) {
       console.error('Erro no Get Access Token', error)
+      if (response) {
+        if (error.menssage) {
+          return response.status(500).send({ menssage: error.menssage })
+        }
+      }
       throw error;
     }
 
@@ -47,6 +52,9 @@ class WatchController {
   //método acessado pela Watch, passando um CODE que será trocado por um TOKEN valido por 6h (homologação).
   async tokenGenerationHomologacao({ request, response, params }) {
     try {
+
+      console.log('\n\nTOKEN GENERATION HML\n');
+
       const { code } = request.only(['code'])
       const { uid } = request.only(['uid'])
 
@@ -58,7 +66,7 @@ class WatchController {
         return response.status(400).send({ menssage: 'uid não informada!' })
       }
 
-      console.log('\n\nSolicitando access-token by code ' + code + '\n');
+      console.log('\nSolicitando access-token by code ' + code + '\n');
 
       const clientId = await Parametro.findBy({ chave: 'watch_hml_client_id' });
       const clientSecret = await Parametro.findBy({ chave: 'watch_hml_client_secret' });
@@ -1106,20 +1114,28 @@ class WatchController {
       const uid = await Parametro.findBy({ chave: 'watch_uid' });
 
       if (!clientId) {
-        return response.status(400).send({ menssage: 'Client_id não parametrizado!' })
+        throw { menssage: 'Client_id não parametrizado!' }
       }
 
       if (!redirectUrl) {
-        return response.status(400).send({ menssage: 'Redirect_url não parametrizada!' })
+        throw { menssage: 'Redirect_url não parametrizada!' }
       }
+
+      if (!uid) {
+        throw { menssage: 'Uid não parametrizado!' }
+      }
+
+      console.log('\n\nENTROU NO AUTHENTICATE WATCH')
+      console.log({clientId: clientId.valor})
+      console.log({redirectUrl: redirectUrl.valor})
 
       var axios = require('axios');
       var qs = require('qs');
       var data = qs.stringify({
-        'client_id': clientId,
-        'redirect_url': redirectUrl,
+        'client_id': `${clientId.valor}`,
+        'redirect_url': `${redirectUrl.valor}`,
         'approval_prompt': 'false',
-        'uid': uid
+        'uid': `${uid.valor}`
       });
       var config = {
         method: 'post',
