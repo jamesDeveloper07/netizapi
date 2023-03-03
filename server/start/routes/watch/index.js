@@ -20,8 +20,10 @@ Route.group(() => {
     return { greeting: 'Hello world in JSON - NETIZAPI - WATCH BRASIL' }
   })
 
-  //usado pela watch para nos enviar o code que será trocado por um access_token
-  Route.post('/tokengeneration', 'Watch/WatchController.tokenGeneration');
+  //usado pela watch para nos enviar o code que será trocado por um access_token (homolog)
+  Route.post('/tokengeneration', 'Watch/WatchController.tokenGenerationHomologacao');
+  //usado pela watch para nos enviar o code que será trocado por um access_token (production)
+  Route.post('/productiontokengeneration', 'Watch/WatchController.tokenGenerationProducao');
 
   //provavelmente serão removidos após os testes
   Route.get('/getaccesstoken', 'Watch/WatchController.getAccessToken');
@@ -38,5 +40,7 @@ Route.group(() => {
 
   Route.post('/v1/atualizarstatus', 'Watch/WatchController.atualizarStatus').middleware(['auth:jwt']);
   Route.post('/v1/deletarticket', 'Watch/WatchController.deletarTicket').middleware(['auth:jwt']);
+
+  Route.post('/v2/inserirticketnew', 'Watch/WatchController.inserirTicketNew').middleware(['auth:jwt']);
 
 }).prefix('/api/watch');

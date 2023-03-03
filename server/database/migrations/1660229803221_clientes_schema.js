@@ -5,7 +5,7 @@ const Schema = use('Schema')
 
 class ClientesSchema extends Schema {
   up() {
-    this.withSchema('common').create('clientes', (table) => {
+    this.withSchema('common').create('clientes', (table) => { 
       table.increments()
       table.string('nome', 300).notNullable()
       table.string('documento').notNullable().unsigned().comment('Número do CPF ou CNPJ, somente números, sem separação')

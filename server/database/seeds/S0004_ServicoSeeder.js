@@ -29,8 +29,8 @@ class ServicoSeeder {
     })
 
     const watch = await Servico.create({
-      nome: 'Watch Espn',
-      descricao: 'Serviço de streaming de canal esportivo',
+      nome: 'Watch Brasil',
+      descricao: 'Serviço de streaming de vídeo e transmissões ao vivo',
       status: 'ativo'
     })
 
