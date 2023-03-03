@@ -95,8 +95,12 @@ class WatchController {
         },
         data: data
       }).then(async (res) => {
+
+        console.log('\n\nENTROU NO THEN \n');
+
         const paramToken = await Parametro.findBy({ chave: 'watch_hml_access_token' });
         const token = res.data.Result[0];
+        console.log({token});
 
         if (token && token.access_token) {
 
@@ -105,7 +109,7 @@ class WatchController {
               paramToken.valor = token.access_token;
               paramToken.updated_at = new Date();
               await paramToken.save();
-              return response.status(200).send('Parametro watch_access_token atualizado com sucesso.');
+              return response.status(200).send('Parametrowatch_hml_access_token atualizado com sucesso.');
             } else {
               const newParamToken = new Parametro();
               newParamToken.merge({
