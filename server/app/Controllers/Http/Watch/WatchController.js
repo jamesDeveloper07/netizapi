@@ -81,8 +81,8 @@ class WatchController {
 
       var qs = require('qs');
       var data = qs.stringify({
-        'client_id': clientId,
-        'client_secret': clientSecret,
+        'client_id': clientId.valor,
+        'client_secret': clientSecret.valor,
         'code': code,
         'grant_type': 'password'
       });
@@ -179,8 +179,8 @@ class WatchController {
 
       var qs = require('qs');
       var data = qs.stringify({
-        'client_id': clientId,
-        'client_secret': clientSecret,
+        'client_id': clientId.valor,
+        'client_secret': clientSecret.valor,
         'code': code,
         'grant_type': 'password'
       });
