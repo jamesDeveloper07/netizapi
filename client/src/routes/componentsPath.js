@@ -25,6 +25,11 @@ import Solicitacoes from "../pages/common/Empresas/Solicitacoes";
 import NewSolicitacao from "../pages/common/Empresas/Solicitacoes/New";
 import EditSolicitacao from "../pages/common/Empresas/Solicitacoes/Edit";
 
+import Watch from "../pages/common/Empresas/Watch/Pacotes";
+import Tickets from "../pages/common/Empresas/Watch/Pacotes/Tickets";
+import NewTicket from "../pages/common/Empresas/Watch/Pacotes/Tickets/New";
+// import EditSolicitacao from "../pages/common/Empresas/Solicitacoes/Edit";
+
 import DashboardAppNetiz from "../pages/dashboard/appNetiz";
 
 import Notificacoes from '../pages/security/Notificacoes'
@@ -175,5 +180,31 @@ const paths = [
         path: '/notificacoes',
         component: Notificacoes,
         layout: '/admin'
-    }
+    },
+
+    {
+        path: '/watch/pacotes',
+        component: Watch,
+        layout: '/admin'
+    },
+    {
+        path: '/watch/pacotes/:codigo/tickets',
+        component: Tickets,
+        layout: '/admin'
+    },
+    {
+        path: '/watch/pacotes/:codigo/tickets/new',
+        component: NewTicket,
+        layout: '/admin'
+    },
+    // {
+    //     path: '/solicitacoes/new',
+    //     component: NewSolicitacao,
+    //     layout: '/admin'
+    // },
+    // {
+    //     path: '/solicitacoes/:id/edit',
+    //     component: EditSolicitacao,
+    //     layout: '/admin'
+    // },
 ]

@@ -12,7 +12,7 @@ export default ({
     displayMode = () => { },
     presets = () => { },
     onSearch,
-    isLoading,
+    isLoading,    
     children,
     clearFilters,
     isOpen,
@@ -20,6 +20,7 @@ export default ({
     onFiltersClead = () => { },
     onCollapsed = () => { },
     visibleButtonInfo = false,
+    disableButtonSearch = false,
     viewInfo = () => { },
 
     ...props }) => {
@@ -131,7 +132,7 @@ export default ({
                             style={{
                                 marginBottom: '8px'
                             }}
-                            disabled={isLoading}
+                            disabled={isLoading || disableButtonSearch}
                             onClick={() => {
                                 onSearch()
                                 setCollapsed(false)
