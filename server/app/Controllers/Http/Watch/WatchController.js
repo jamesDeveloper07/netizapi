@@ -100,7 +100,9 @@ class WatchController {
 
         const paramToken = await Parametro.findBy({ chave: 'watch_hml_access_token' });
         const token = res.data.Result[0];
-        console.log({token});
+        console.log({ token });
+
+        var msgResponse;
 
         if (token && token.access_token) {
 
@@ -109,7 +111,7 @@ class WatchController {
               paramToken.valor = token.access_token;
               paramToken.updated_at = new Date();
               await paramToken.save();
-              return response.status(200).send('Parametrowatch_hml_access_token atualizado com sucesso.');
+              msgResponse = 'Parametro watch_hml_access_token atualizado com sucesso.'
             } else {
               const newParamToken = new Parametro();
               newParamToken.merge({
@@ -121,8 +123,21 @@ class WatchController {
               });
 
               await newParamToken.save();
-              return response.status(200).send('Parametro watch_access_token criado com sucesso.');
+              msgResponse = 'Parametro watch_hml_access_token criado com sucesso.'
             }
+
+            const clientIdPro = await Parametro.findBy({ chave: 'watch_client_id' });
+            if (clientIdPro.valor == clientId.valor) {
+              const paramTokenProd = await Parametro.findBy({ chave: 'watch_access_token' });
+              if (paramTokenProd && paramTokenProd.id && paramTokenProd.id > 0) {
+                paramTokenProd.valor = token.access_token;
+                paramTokenProd.updated_at = new Date();
+                await paramTokenProd.save();
+                msgResponse += ' (hml e prod)'
+              }
+            }
+
+            return response.status(200).send(msgResponse);
 
           } catch (error) {
             return response.status(400).send('Falha na atualização do parametro watch_access_token.');
@@ -1130,8 +1145,8 @@ class WatchController {
       }
 
       console.log('\n\nENTROU NO AUTHENTICATE WATCH')
-      console.log({clientId: clientId.valor})
-      console.log({redirectUrl: redirectUrl.valor})
+      console.log({ clientId: clientId.valor })
+      console.log({ redirectUrl: redirectUrl.valor })
 
       var axios = require('axios');
       var qs = require('qs');
