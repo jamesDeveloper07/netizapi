@@ -30,58 +30,58 @@ class EventController {
         return response.status(500).send({ menssage: 'Parametro last_event_id não encontrado!' })
       }
 
-      const selectContractEvents = await Database
-        .connection('pgvoalle')
-        .raw(`Select *,
-        (svas is not null) as isServicoDigital,
-        (svas is not null and svas ilike '%698%') as isDeezer,
-        (svas is not null and svas ilike '%699%') as isWatch,
-        (svas is not null and svas ilike '%700%') as isHBO
-
-        from (
-        SELECT even.id, even.contract_id, even.contract_event_type_id, even.date, even.description
-        ,cont.client_id, cli.name, cli.tx_id as cpf, cli.cell_phone_1 as phone, cli.email
-        , cont.stage, cont.v_stage, cont.status, cont.v_status
-        , string_agg(distinct(item.id)||'' , ',') as itens
-        , string_agg(distinct(item.service_product_id)||'' , ',') as service_products
-        , string_agg(comp.service_product_id||'' , ',') as svas
-
-        FROM erp.contract_events even
-        inner join erp.contracts cont on  (even.contract_id = cont.id)
-        inner join erp.people cli on (cont.client_id = cli.id)
-        inner join erp.contract_items item on (cont.id = item.contract_id and item.deleted is FALSE and item.contract_service_tag_id is not null)
-        inner join erp.service_compositions comp on (comp.parent_id = item.service_product_id and comp.service_product_id in (698,699,700))
-
-        where TRUE
-        and even.id > ${paramLastEventId.valor}
-
-        and (even.contract_event_type_id = 3 --cadastro aprovado
-        or even.contract_event_type_id in(110, 153, 154, 155, 156, 157,158,159,160,161,162,163,164,165,166,167,168,169,170,174,175) ) --cadastro cancelados
-
-        --and even.contract_event_type_id = 3 --cadastro aprovado
-        --and even.contract_event_type_id = 27 --inclusão de serviço
-        --and even.contract_event_type_id in(3, 156) --cadastro aprovado ou cancelado(Mudança)
-        --and even.contract_event_type_id = 105
-        --and even.contract_event_type_id = 28
-
-        --and cont.id = 9762 -- HBO
-        --and cont.id = 220085 -- cancelado
-        --and cont.id = 214515 -- cancelado
-
-        and even.deleted = false
-        GROUP BY even.id, even.contract_id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
-        order by even.id desc
-        limit 1000
-        ) as eventos_svas`);
-
-
       // const selectContractEvents = await Database
-      //   .connection('pg')
-      //   .raw(`Select * FROM public.contract_events even
+      //   .connection('pgvoalle')
+      //   .raw(`Select *,
+      //   (svas is not null) as isServicoDigital,
+      //   (svas is not null and svas ilike '%698%') as isDeezer,
+      //   (svas is not null and svas ilike '%699%') as isWatch,
+      //   (svas is not null and svas ilike '%700%') as isHBO
+
+      //   from (
+      //   SELECT even.id, even.contract_id, even.contract_event_type_id, even.date, even.description
+      //   ,cont.client_id, cli.name, cli.tx_id as cpf, cli.cell_phone_1 as phone, cli.email
+      //   , cont.stage, cont.v_stage, cont.status, cont.v_status
+      //   , string_agg(distinct(item.id)||'' , ',') as itens
+      //   , string_agg(distinct(item.service_product_id)||'' , ',') as service_products
+      //   , string_agg(comp.service_product_id||'' , ',') as svas
+
+      //   FROM erp.contract_events even
+      //   inner join erp.contracts cont on  (even.contract_id = cont.id)
+      //   inner join erp.people cli on (cont.client_id = cli.id)
+      //   inner join erp.contract_items item on (cont.id = item.contract_id and item.deleted is FALSE and item.contract_service_tag_id is not null)
+      //   inner join erp.service_compositions comp on (comp.parent_id = item.service_product_id and comp.service_product_id in (698,699,700))
+
       //   where TRUE
       //   and even.id > ${paramLastEventId.valor}
+
+      //   and (even.contract_event_type_id = 3 --cadastro aprovado
+      //   or even.contract_event_type_id in(110, 153, 154, 155, 156, 157,158,159,160,161,162,163,164,165,166,167,168,169,170,174,175) ) --cadastro cancelados
+
+      //   --and even.contract_event_type_id = 3 --cadastro aprovado
+      //   --and even.contract_event_type_id = 27 --inclusão de serviço
+      //   --and even.contract_event_type_id in(3, 156) --cadastro aprovado ou cancelado(Mudança)
+      //   --and even.contract_event_type_id = 105
+      //   --and even.contract_event_type_id = 28
+
+      //   --and cont.id = 9762 -- HBO
+      //   --and cont.id = 220085 -- cancelado
+      //   --and cont.id = 214515 -- cancelado
+
+      //   and even.deleted = false
+      //   GROUP BY even.id, even.contract_id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
       //   order by even.id desc
-      //   limit 1000 `);
+      //   limit 1000
+      //   ) as eventos_svas`);
+
+
+      const selectContractEvents = await Database
+        .connection('pg')
+        .raw(`Select * FROM public.contract_events even
+        where TRUE
+        and even.id > ${paramLastEventId.valor}
+        order by even.id desc
+        limit 1000 `);
 
       // later close the connection
       Database.close(['pg']);
@@ -106,40 +106,67 @@ class EventController {
             if (event.isdeezer) {
               var servico_id = 1
               var tipoExecucao = 'activate';
-              var successDeezer = await this.executarDeezer(event, tipoExecucao);
 
-              if (successDeezer) {
-                SVAsOK += 'Deezer'
-                separadorOk = ', '
+              const servico = await Servico.query()
+                .where({ id: servico_id })
+                .first()
+
+              if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
+                var successDeezer = await this.executarDeezer(event, servico, tipoExecucao);
+
+                if (successDeezer) {
+                  SVAsOK += 'Deezer'
+                  separadorOk = ', '
+                } else {
+                  SVAsError += 'Deezer'
+                  separadorError = ', '
+                }
               } else {
-                SVAsError += 'Deezer'
-                separadorError = ', '
+                console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
               }
             }
 
             if (event.iswatch) {
               var servico_id = 3
-              var successWatch = await this.inserirTicketWatch(event, servico_id);
 
-              if (successWatch) {
-                SVAsOK += separadorOk + 'Watch Brasil'
-                separadorOk = ', '
+              const servico = await Servico.query()
+                .where({ id: servico_id })
+                .first()
+
+              if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
+
+                var successWatch = await this.inserirTicketWatch(event, servico);
+
+                if (successWatch) {
+                  SVAsOK += separadorOk + 'Watch Brasil'
+                  separadorOk = ', '
+                } else {
+                  SVAsError += separadorError + 'Watch Brasil'
+                  separadorError = ', '
+                }
               } else {
-                SVAsError += separadorError + 'Watch Brasil'
-                separadorError = ', '
+                console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
               }
             }
 
             if (event.ishbo) {
               var servico_id = 4
-              var successHBO = await this.inserirTicketWatch(event, servico_id);
+              const servico = await Servico.query()
+                .where({ id: servico_id })
+                .first()
 
-              if (successHBO) {
-                SVAsOK += separadorOk + 'HBO Max'
-                separadorOk = ', '
+              if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
+                var successHBO = await this.inserirTicketWatch(event, servico);
+
+                if (successHBO) {
+                  SVAsOK += separadorOk + 'HBO Max'
+                  separadorOk = ', '
+                } else {
+                  SVAsError += separadorError + 'HBO Max'
+                  separadorError = ', '
+                }
               } else {
-                SVAsError += separadorError + 'HBO Max'
-                separadorError = ', '
+                console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
               }
             }
 
@@ -157,40 +184,65 @@ class EventController {
                 var servico_id = 1
                 var tipoExecucao = 'deactivate';
 
-                var successDeezer = await this.executarDeezer(event, tipoExecucao);
+                const servico = await Servico.query()
+                  .where({ id: servico_id })
+                  .first()
 
-                if (successDeezer) {
-                  SVAsOK += 'Deezer'
-                  separadorOk = ', '
+                if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
+
+                  var successDeezer = await this.executarDeezer(event, servico, tipoExecucao);
+
+                  if (successDeezer) {
+                    SVAsOK += 'Deezer'
+                    separadorOk = ', '
+                  } else {
+                    SVAsError += 'Deezer'
+                    separadorError = ', '
+                  }
                 } else {
-                  SVAsError += 'Deezer'
-                  separadorError = ', '
+                  console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
                 }
               }
 
               if (event.iswatch) {
                 var servico_id = 3
-                var successWatch = await this.deletarTicketWatch(event, servico_id);
+                const servico = await Servico.query()
+                  .where({ id: servico_id })
+                  .first()
 
-                if (successWatch) {
-                  SVAsOK += separadorOk + 'Watch Brasil'
-                  separadorOk = ', '
+                if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
+                  var successWatch = await this.deletarTicketWatch(event, servico);
+
+                  if (successWatch) {
+                    SVAsOK += separadorOk + 'Watch Brasil'
+                    separadorOk = ', '
+                  } else {
+                    SVAsError += separadorError + 'Watch Brasil'
+                    separadorError = ', '
+                  }
                 } else {
-                  SVAsError += separadorError + 'Watch Brasil'
-                  separadorError = ', '
+                  console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
                 }
               }
 
               if (event.ishbo) {
                 var servico_id = 4
-                var successHBO = await this.deletarTicketWatch(event, servico_id);
+                const servico = await Servico.query()
+                  .where({ id: servico_id })
+                  .first()
 
-                if (successHBO) {
-                  SVAsOK += separadorOk + 'HBO Max'
-                  separadorOk = ', '
+                if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
+                  var successHBO = await this.deletarTicketWatch(event, servico);
+
+                  if (successHBO) {
+                    SVAsOK += separadorOk + 'HBO Max'
+                    separadorOk = ', '
+                  } else {
+                    SVAsError += separadorError + 'HBO Max'
+                    separadorError = ', '
+                  }
                 } else {
-                  SVAsError += separadorError + 'HBO Max'
-                  separadorError = ', '
+                  console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
                 }
               }
 
@@ -231,7 +283,7 @@ class EventController {
     return false;
   }
 
-  async executarDeezer(event, tipoExecucao) {
+  async executarDeezer(event, servico, tipoExecucao) {
     try {
 
       //const hostApi = 'https://beta-eng.hubisp.net.br/notification/';
@@ -239,8 +291,6 @@ class EventController {
       const hostApi = Env.get('HUBISP_API_HOST') + '/notification/';
       var code = `?code=${Env.get('HUBISP_API_CODE')}`;
       var token = Env.get('HUBISP_API_TOKEN');
-
-      // console.log(solicitacoes[index].acao_servico_id);
 
       var key = '&key=' + event.cpf;
       var ext = '&ext=' + event.phone;
@@ -250,10 +300,6 @@ class EventController {
       if (tipoExecucao === 'activate') {
         urlApi = urlApi + ext;
       }
-
-      console.log(urlApi);
-
-      // console.log(token);
 
       const newWatch = {
         nome_cliente: event.name,
@@ -265,7 +311,7 @@ class EventController {
         assinante_id_integracao: null,
         protocolo_externo_id: event.id,
         user_id: 1,
-        servico_id: 1,
+        servico_id: servico.id,
         acao: tipoExecucao,
         // status: 'executada',
         // status_detalhe: null,
@@ -281,12 +327,8 @@ class EventController {
           }
         })
 
-        console.log("RESPONSE (response.data)")
-        console.log(response.data)
 
         if (response && response.data && response.data.response) {
-          console.log("SUCESSO TRUE")
-          // await this.marcarComoFinalizada(event[index])
           newWatch.status = 'executada';
           newWatch.status_detalhe = response.data;
 
@@ -330,18 +372,10 @@ class EventController {
   }
 
 
-  async inserirTicketWatch(event, servico_id) {
+  async inserirTicketWatch(event, servico) {
     try {
 
-      console.log('\n\nINSERT TICKET BY EVENT\n\n')
-
-      const servico = await Servico.query()
-        .where({ id: servico_id })
-        .first()
-
-      console.log({ servico })
-
-      const pPacote = servico.integracao_id;
+      const pPacote = parseInt(servico.integracao_id);
       const pName = event.name;
       const pEmail = event.email;
       const pPhone = event.phone;
@@ -374,8 +408,6 @@ class EventController {
 
       url += separador + 'pAssinanteIDIntegracao=n3t1z-api';
 
-      console.log({ url })
-
       const newWatch = {
         nome_cliente: pName,
         documento_cliente: documento.replace(/[^0-9]/g, ''),
@@ -386,7 +418,7 @@ class EventController {
         assinante_id_integracao: 'n3t1z-api',
         protocolo_externo_id,
         user_id: 1,
-        servico_id,
+        servico_id: servico.id,
         acao: 'insert ticket',
         // status: 'executada',
         // status_detalhe: null,
@@ -461,20 +493,12 @@ class EventController {
   }
 
 
-  async deletarTicketWatch(event, servico_id) {
+  async deletarTicketWatch(event, servico) {
     try {
       //const { pPacote, pTicket, pEmail, IDIntegracaoAssinante, pStatus } = request.only(['pPacote', 'pTicket', 'pEmail', 'IDIntegracaoAssinante', 'pStatus'])
       //const { protocolo_externo_id } = request.only(['protocolo_externo_id'])
 
-      console.log('\n\nDELETE TICKET BY EVENT\n\n')
-
-      const servico = await Servico.query()
-        .where({ id: servico_id })
-        .first()
-
-      console.log({ servico })
-
-      const pPacote = servico.integracao_id;
+      const pPacote = parseInt(servico.integracao_id);
       const pName = event.name;
       const pEmail = event.email;
       const pPhone = event.phone;
@@ -503,7 +527,7 @@ class EventController {
         // assinante_id_integracao: IDIntegracaoAssinante,
         protocolo_externo_id,
         user_id: 1,
-        servico_id,
+        servico_id: servico.id,
         acao: 'excluir ticket',
         // ticket: pTicket,
         // status: 'executada',
@@ -531,8 +555,6 @@ class EventController {
           url += '&pEmail=' + pEmail;
         }
       }
-
-      console.log({ url })
 
       const respToken = await this.getAccessToken({ request: null, response: null });
 
