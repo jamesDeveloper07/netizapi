@@ -26,6 +26,8 @@ Route.group(() => {
   Route.get('/getfaturasbycontrato/:contract_id', 'Voalle/VoalleController.getFaturasByContractId');
   Route.get('/getfaturabyid/:id', 'Voalle/VoalleController.getFaturaById');
 
+  Route.get('/processareventos', 'Voalle/EventController.getEvents');
+
   Route.get('/teste2', 'Voalle/VoalleController.teste2');
 
 }).prefix('/api/voalle');

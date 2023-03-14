@@ -13,7 +13,7 @@ class ServicosSchema extends Schema {
         .enu('status', ['ativo', 'inativo'])
         .notNullable()
         .comment('Coluna referente ao status do serviço, que pode estar ativo ou inativo')
-
+      table.string('integracao_id', 25)
       table.timestamp('created_at').notNullable().defaultTo(this.fn.now())
       table.timestamp('updated_at').notNullable().defaultTo(this.fn.now())
       table.timestamp('deleted_at')

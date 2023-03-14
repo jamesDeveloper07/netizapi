@@ -31,7 +31,15 @@ class ServicoSeeder {
     const watch = await Servico.create({
       nome: 'Watch Brasil',
       descricao: 'Serviço de streaming de vídeo e transmissões ao vivo',
-      status: 'ativo'
+      status: 'ativo',
+      integracao_id: '3'
+    })
+
+    const hbomax = await Servico.create({
+      nome: 'HBO Max',
+      descricao: 'Serviço de streaming de vídeo e transmissões ao vivo',
+      status: 'ativo',
+      integracao_id: '4'
     })
 
   }

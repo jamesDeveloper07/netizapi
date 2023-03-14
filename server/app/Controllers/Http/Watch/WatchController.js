@@ -831,7 +831,7 @@ class WatchController {
         if (respUpdateStatus && respUpdateStatus.Result && !respUpdateStatus.HasError && !respUpdateStatus.IsValidationError) {
           // return response.status(200).send({ menssage: 'Ticket ' + (pStatus ? 'ativado' : 'inativado') + ' com sucesso.' })
           newWatch.status = 'executada';
-          newWatch.status_detalhe = null;
+          newWatch.status_detalhe = respUpdateStatus.Result;
 
           const logWatch = await LogWatch.create(newWatch)
           const id = logWatch.id
@@ -951,7 +951,7 @@ class WatchController {
         if (respDeleteTicket && respDeleteTicket.Result && !respDeleteTicket.HasError && !respDeleteTicket.IsValidationError) {
           // return response.status(200).send({ menssage: 'Ticket deletado com sucesso.' })
           newWatch.status = 'executada';
-          newWatch.status_detalhe = null;
+          newWatch.status_detalhe = respDeleteTicket.Result;
 
           const logWatch = await LogWatch.create(newWatch)
           const id = logWatch.id
@@ -1091,7 +1091,7 @@ class WatchController {
           // return response.status(200).send(respTicket.Result)
           newWatch.ticket = respTicket.Result.ticket;
           newWatch.status = 'executada';
-          newWatch.status_detalhe = null;
+          newWatch.status_detalhe = respTicket.Result;
 
           const logWatch = await LogWatch.create(newWatch)
           const id = logWatch.id
