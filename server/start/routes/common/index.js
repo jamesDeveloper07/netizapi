@@ -58,5 +58,7 @@ Route.group(() => {
   Route.get('/findClienteErpByDocumento/:documento', 'Common/SolicitacaoController.findClienteErpByDocumento').middleware(['auth:jwt']);
 
 
+  //LogIntegracao
+  Route.get('/log_integracao', 'Common/LogIntegracaoController.index').middleware(['auth:jwt']);
 
 }).prefix('/api/common');

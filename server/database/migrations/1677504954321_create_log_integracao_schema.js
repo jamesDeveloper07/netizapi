@@ -3,9 +3,9 @@
 /** @type {import('@adonisjs/lucid/src/Schema')} */
 const Schema = use('Schema')
 
-class CreateLogWatchSchema extends Schema {
+class CreateLogIntegracaoSchema extends Schema {
   up() {
-    this.withSchema('common').create('log_watch', (table) => {
+    this.withSchema('common').create('log_integracao', (table) => {
       table.increments()
 
       table.string('nome_cliente', 300)
@@ -30,7 +30,7 @@ class CreateLogWatchSchema extends Schema {
       table.string('status_detalhe').comment('Coluna destinada a detalhes referente ao status')
 
       table.integer('user_id').notNullable().unsigned().references('id').inTable('security.users').comment('Usuário que criou/executou a ação.')
-
+      table.timestamp('data_evento')
       table.timestamp('created_at').notNullable().defaultTo(this.fn.now())
       table.timestamp('updated_at').notNullable().defaultTo(this.fn.now())
       table.timestamp('deleted_at')
@@ -38,8 +38,8 @@ class CreateLogWatchSchema extends Schema {
   }
 
   down() {
-    this.withSchema('common').drop('log_watch')
+    this.withSchema('common').drop('log_integracao')
   }
 }
 
-module.exports = CreateLogWatchSchema
+module.exports = CreateLogIntegracaoSchema

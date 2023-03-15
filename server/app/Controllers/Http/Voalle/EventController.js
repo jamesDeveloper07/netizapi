@@ -7,7 +7,7 @@ const Database = use('Database')
 const moment = require('moment-timezone');
 
 const Parametro = use('App/Models/Common/Parametro')
-const LogWatch = use('App/Models/Common/LogWatch')
+const LogIntegracao = use('App/Models/Common/LogIntegracao')
 
 const Servico = use('App/Models/Common/Servico');
 
@@ -30,58 +30,58 @@ class EventController {
         return response.status(500).send({ menssage: 'Parametro last_event_id não encontrado!' })
       }
 
-      const selectContractEvents = await Database
-        .connection('pgvoalle')
-        .raw(`Select *,
-        (svas is not null) as isServicoDigital,
-        (svas is not null and svas ilike '%698%') as isDeezer,
-        (svas is not null and svas ilike '%699%') as isWatch,
-        (svas is not null and svas ilike '%700%') as isHBO
-
-        from (
-        SELECT even.id, even.contract_id, even.contract_event_type_id, even.date, even.description
-        ,cont.client_id, cli.name, cli.tx_id as cpf, cli.cell_phone_1 as phone, cli.email
-        , cont.stage, cont.v_stage, cont.status, cont.v_status
-        , string_agg(distinct(item.id)||'' , ',') as itens
-        , string_agg(distinct(item.service_product_id)||'' , ',') as service_products
-        , string_agg(comp.service_product_id||'' , ',') as svas
-
-        FROM erp.contract_events even
-        inner join erp.contracts cont on  (even.contract_id = cont.id)
-        inner join erp.people cli on (cont.client_id = cli.id)
-        inner join erp.contract_items item on (cont.id = item.contract_id and item.deleted is FALSE and item.contract_service_tag_id is not null)
-        inner join erp.service_compositions comp on (comp.parent_id = item.service_product_id and comp.service_product_id in (698,699,700))
-
-        where TRUE
-        and even.id > ${paramLastEventId.valor}
-
-        and (even.contract_event_type_id = 3 --cadastro aprovado
-        or even.contract_event_type_id in(110, 153, 154, 155, 156, 157,158,159,160,161,162,163,164,165,166,167,168,169,170,174,175) ) --cadastro cancelados
-
-        --and even.contract_event_type_id = 3 --cadastro aprovado
-        --and even.contract_event_type_id = 27 --inclusão de serviço
-        --and even.contract_event_type_id in(3, 156) --cadastro aprovado ou cancelado(Mudança)
-        --and even.contract_event_type_id = 105
-        --and even.contract_event_type_id = 28
-
-        --and cont.id = 9762 -- HBO
-        --and cont.id = 220085 -- cancelado
-        --and cont.id = 214515 -- cancelado
-
-        and even.deleted = false
-        GROUP BY even.id, even.contract_id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
-        order by even.id desc
-        limit 1000
-        ) as eventos_svas`);
-
-
       // const selectContractEvents = await Database
-      //   .connection('pg')
-      //   .raw(`Select * FROM public.contract_events even
+      //   .connection('pgvoalle')
+      //   .raw(`Select *,
+      //   (svas is not null) as isServicoDigital,
+      //   (svas is not null and svas ilike '%698%') as isDeezer,
+      //   (svas is not null and svas ilike '%699%') as isWatch,
+      //   (svas is not null and svas ilike '%700%') as isHBO
+
+      //   from (
+      //   SELECT even.id, even.contract_id, even.contract_event_type_id, even.date, even.description
+      //   ,cont.client_id, cli.name, cli.tx_id as cpf, cli.cell_phone_1 as phone, cli.email
+      //   , cont.stage, cont.v_stage, cont.status, cont.v_status
+      //   , string_agg(distinct(item.id)||'' , ',') as itens
+      //   , string_agg(distinct(item.service_product_id)||'' , ',') as service_products
+      //   , string_agg(comp.service_product_id||'' , ',') as svas
+
+      //   FROM erp.contract_events even
+      //   inner join erp.contracts cont on  (even.contract_id = cont.id)
+      //   inner join erp.people cli on (cont.client_id = cli.id)
+      //   inner join erp.contract_items item on (cont.id = item.contract_id and item.deleted is FALSE and item.contract_service_tag_id is not null)
+      //   inner join erp.service_compositions comp on (comp.parent_id = item.service_product_id and comp.service_product_id in (698,699,700))
+
       //   where TRUE
       //   and even.id > ${paramLastEventId.valor}
+
+      //   and (even.contract_event_type_id = 3 --cadastro aprovado
+      //   or even.contract_event_type_id in(110, 153, 154, 155, 156, 157,158,159,160,161,162,163,164,165,166,167,168,169,170,174,175) ) --cadastro cancelados
+
+      //   --and even.contract_event_type_id = 3 --cadastro aprovado
+      //   --and even.contract_event_type_id = 27 --inclusão de serviço
+      //   --and even.contract_event_type_id in(3, 156) --cadastro aprovado ou cancelado(Mudança)
+      //   --and even.contract_event_type_id = 105
+      //   --and even.contract_event_type_id = 28
+
+      //   --and cont.id = 9762 -- HBO
+      //   --and cont.id = 220085 -- cancelado
+      //   --and cont.id = 214515 -- cancelado
+
+      //   and even.deleted = false
+      //   GROUP BY even.id, even.contract_id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
       //   order by even.id desc
-      //   limit 1000 `);
+      //   limit 1000
+      //   ) as eventos_svas`);
+
+
+      const selectContractEvents = await Database
+        .connection('pg')
+        .raw(`Select * FROM public.contract_events even
+        where TRUE
+        and even.id > ${paramLastEventId.valor}
+        order by even.id desc
+        limit 1000 `);
 
       // later close the connection
       Database.close(['pg']);
@@ -301,7 +301,7 @@ class EventController {
         urlApi = urlApi + ext;
       }
 
-      const newWatch = {
+      const newLogIntegracao = {
         nome_cliente: event.name,
         documento_cliente: event.cpf,
         email_cliente: event.email,
@@ -313,6 +313,7 @@ class EventController {
         user_id: 1,
         servico_id: servico.id,
         acao: tipoExecucao,
+        data_evento: event.date
         // status: 'executada',
         // status_detalhe: null,
       }
@@ -329,12 +330,12 @@ class EventController {
 
 
         if (response && response.data && response.data.response) {
-          newWatch.status = 'executada';
-          newWatch.status_detalhe = response.data;
+          newLogIntegracao.status = 'executada';
+          newLogIntegracao.status_detalhe = response.data;
 
-          const logWatch = await LogWatch.create(newWatch)
-          const id = logWatch.id
-          const data = await LogWatch.query()
+          const logIntegracao = await LogIntegracao.create(newLogIntegracao)
+          const id = logIntegracao.id
+          const data = await LogIntegracao.query()
             .where({ id })
             .first()
 
@@ -345,12 +346,12 @@ class EventController {
             // await this.marcarComoFalhaOuInvalida(event[index], 'falha', 'Falha na execução por parte da api')
             // throw Error(response.data.error);
 
-            newWatch.status = 'falha';
-            newWatch.status_detalhe = response.data;
+            newLogIntegracao.status = 'falha';
+            newLogIntegracao.status_detalhe = response.data;
 
-            const logWatch = await LogWatch.create(newWatch)
-            const id = logWatch.id
-            const data = await LogWatch.query()
+            const logIntegracao = await LogIntegracao.create(newLogIntegracao)
+            const id = logIntegracao.id
+            const data = await LogIntegracao.query()
               .where({ id })
               .first()
 
@@ -408,7 +409,7 @@ class EventController {
 
       url += separador + 'pAssinanteIDIntegracao=n3t1z-api';
 
-      const newWatch = {
+      const newLogIntegracao = {
         nome_cliente: pName,
         documento_cliente: documento.replace(/[^0-9]/g, ''),
         email_cliente: pEmail,
@@ -420,6 +421,7 @@ class EventController {
         user_id: 1,
         servico_id: servico.id,
         acao: 'insert ticket',
+        data_evento: event.date
         // status: 'executada',
         // status_detalhe: null,
       }
@@ -451,33 +453,33 @@ class EventController {
 
         if (respTicket && !respTicket.HasError && !respTicket.IsValidationError && respTicket.Result && respTicket.Result.ticket) {
           // return response.status(200).send(respTicket.Result)
-          newWatch.ticket = respTicket.Result.ticket;
-          newWatch.status = 'executada';
-          newWatch.status_detalhe = respTicket.Result;
+          newLogIntegracao.ticket = respTicket.Result.ticket;
+          newLogIntegracao.status = 'executada';
+          newLogIntegracao.status_detalhe = respTicket.Result;
 
-          const logWatch = await LogWatch.create(newWatch)
-          const id = logWatch.id
-          const data = await LogWatch.query()
+          const logIntegracao = await LogIntegracao.create(newLogIntegracao)
+          const id = logIntegracao.id
+          const data = await LogIntegracao.query()
             .where({ id })
             .first()
 
           return true
 
         } else {
-          newWatch.status = 'falha';
-          newWatch.status_detalhe = respTicket.data;
+          newLogIntegracao.status = 'falha';
+          newLogIntegracao.status_detalhe = respTicket.data;
 
-          await LogWatch.create(newWatch)
+          await LogIntegracao.create(newLogIntegracao)
 
           console.error(respTicket.data)
 
           return false;
         }
       } else {
-        newWatch.status = 'falha';
-        newWatch.status_detalhe = respToken;
+        newLogIntegracao.status = 'falha';
+        newLogIntegracao.status_detalhe = respToken;
 
-        await LogWatch.create(newWatch)
+        await LogIntegracao.create(newLogIntegracao)
 
         console.error(respToken)
 
@@ -517,7 +519,7 @@ class EventController {
         ticket = await this.getTicket(pPacote, pEmail);
       }
 
-      const newWatch = {
+      const newLogIntegracao = {
         nome_cliente: pName,
         documento_cliente: documento.replace(/[^0-9]/g, ''),
         email_cliente: pEmail,
@@ -529,6 +531,7 @@ class EventController {
         user_id: 1,
         servico_id: servico.id,
         acao: 'excluir ticket',
+        data_evento: event.date
         // ticket: pTicket,
         // status: 'executada',
         // status_detalhe: null,
@@ -536,16 +539,16 @@ class EventController {
 
       if (!ticket || !ticket.success || !ticket.ticket) {
         console.log('\n\nTicket não encontrato\n')
-        newWatch.status = 'falha';
-        newWatch.status_detalhe = 'Ticket não encontrado pela api watch';
-        await LogWatch.create(newWatch)
+        newLogIntegracao.status = 'falha';
+        newLogIntegracao.status_detalhe = 'Ticket não encontrado pela api watch';
+        await LogIntegracao.create(newLogIntegracao)
         //return response.status(400).send(respDeleteTicket.data)
         return false;
       } else {
         pTicket = ticket.ticket.Ticket;
         IDIntegracaoAssinante = ticket.ticket.IDIntegracaoAssinante;
-        newWatch.assinante_id_integracao = IDIntegracaoAssinante;
-        newWatch.ticket = pTicket;
+        newLogIntegracao.assinante_id_integracao = IDIntegracaoAssinante;
+        newLogIntegracao.ticket = pTicket;
       }
 
       url += '?pTicket=' + pTicket;
@@ -583,12 +586,12 @@ class EventController {
 
         if (respDeleteTicket && respDeleteTicket.Result && !respDeleteTicket.HasError && !respDeleteTicket.IsValidationError) {
           // return response.status(200).send({ menssage: 'Ticket deletado com sucesso.' })
-          newWatch.status = 'executada';
-          newWatch.status_detalhe = respDeleteTicket.Result;
+          newLogIntegracao.status = 'executada';
+          newLogIntegracao.status_detalhe = respDeleteTicket.Result;
 
-          const logWatch = await LogWatch.create(newWatch)
-          const id = logWatch.id
-          const data = await LogWatch.query()
+          const logIntegracao = await LogIntegracao.create(newLogIntegracao)
+          const id = logIntegracao.id
+          const data = await LogIntegracao.query()
             .where({ id })
             .first()
 
@@ -596,16 +599,16 @@ class EventController {
           return true
 
         } else {
-          newWatch.status = 'falha';
-          newWatch.status_detalhe = respDeleteTicket.data;
-          await LogWatch.create(newWatch)
+          newLogIntegracao.status = 'falha';
+          newLogIntegracao.status_detalhe = respDeleteTicket.data;
+          await LogIntegracao.create(newLogIntegracao)
           //return response.status(400).send(respDeleteTicket.data)
           return false;
         }
       } else {
-        newWatch.status = 'falha';
-        newWatch.status_detalhe = respToken;
-        await LogWatch.create(newWatch)
+        newLogIntegracao.status = 'falha';
+        newLogIntegracao.status_detalhe = respToken;
+        await LogIntegracao.create(newLogIntegracao)
         // return response.status(400).send(respToken)
         return false;
       }

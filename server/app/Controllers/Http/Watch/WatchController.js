@@ -597,7 +597,7 @@ class WatchController {
         return response.status(400).send({ menssage: validacaoTelefones.msg })
       }
 
-      const newWatch = {
+      const newLogIntegracaoWatch = {
         // nome_cliente: pName,
         // documento_cliente: documento.replace(/[^0-9]/g, ''),
         email_cliente: pEmail,
@@ -639,11 +639,11 @@ class WatchController {
         if (respEditPhone && !respEditPhone.HasError && !respEditPhone.IsValidationError && respEditPhone.Result && respEditPhone.Result.User) {
           // return response.status(200).send(respEditPhone.Result)
 
-          newWatch.telefone_cliente = newPhone;
-          newWatch.status = 'executada';
-          newWatch.status_detalhe = `Telefone alterado de ${oldPhone} para ${newPhone}`;
+          newLogIntegracaoWatch.telefone_cliente = newPhone;
+          newLogIntegracaoWatch.status = 'executada';
+          newLogIntegracaoWatch.status_detalhe = `Telefone alterado de ${oldPhone} para ${newPhone}`;
 
-          const logWatch = await LogWatch.create(newWatch)
+          const logWatch = await LogWatch.create(newLogIntegracaoWatch)
           const id = logWatch.id
           const data = await LogWatch.query()
             .where({ id })
@@ -651,17 +651,17 @@ class WatchController {
 
           return response.status(200).send({ menssage: 'Telefone alterado com sucesso.', data })
         } else {
-          newWatch.status = 'falha';
-          newWatch.status_detalhe = respEditPhone.data;
+          newLogIntegracaoWatch.status = 'falha';
+          newLogIntegracaoWatch.status_detalhe = respEditPhone.data;
 
-          await LogWatch.create(newWatch)
+          await LogWatch.create(newLogIntegracaoWatch)
           return response.status(400).send(respEditPhone.data)
         }
       } else {
-        newWatch.status = 'falha';
-        newWatch.status_detalhe = respToken;
+        newLogIntegracaoWatch.status = 'falha';
+        newLogIntegracaoWatch.status_detalhe = respToken;
 
-        await LogWatch.create(newWatch)
+        await LogWatch.create(newLogIntegracaoWatch)
         return response.status(400).send(respToken)
       }
 
@@ -790,7 +790,7 @@ class WatchController {
         return response.status(400).send({ menssage: `Este Ticket já está ${pStatus ? 'Ativo' : 'Inativo'}.` })
       }
 
-      const newWatch = {
+      const newLogIntegracaoWatch = {
         // nome_cliente: pName,
         // documento_cliente: documento.replace(/[^0-9]/g, ''),
         email_cliente: pEmail,
@@ -830,10 +830,10 @@ class WatchController {
 
         if (respUpdateStatus && respUpdateStatus.Result && !respUpdateStatus.HasError && !respUpdateStatus.IsValidationError) {
           // return response.status(200).send({ menssage: 'Ticket ' + (pStatus ? 'ativado' : 'inativado') + ' com sucesso.' })
-          newWatch.status = 'executada';
-          newWatch.status_detalhe = respUpdateStatus.Result;
+          newLogIntegracaoWatch.status = 'executada';
+          newLogIntegracaoWatch.status_detalhe = respUpdateStatus.Result;
 
-          const logWatch = await LogWatch.create(newWatch)
+          const logWatch = await LogWatch.create(newLogIntegracaoWatch)
           const id = logWatch.id
           const data = await LogWatch.query()
             .where({ id })
@@ -841,17 +841,17 @@ class WatchController {
 
           return response.status(200).send({ menssage: 'Ticket ' + (pStatus ? 'ativado' : 'inativado') + ' com sucesso.', data })
         } else {
-          newWatch.status = 'falha';
-          newWatch.status_detalhe = respUpdateStatus.data;
+          newLogIntegracaoWatch.status = 'falha';
+          newLogIntegracaoWatch.status_detalhe = respUpdateStatus.data;
 
-          await LogWatch.create(newWatch)
+          await LogWatch.create(newLogIntegracaoWatch)
           return response.status(400).send(respUpdateStatus.data)
         }
       } else {
-        newWatch.status = 'falha';
-        newWatch.status_detalhe = respToken;
+        newLogIntegracaoWatch.status = 'falha';
+        newLogIntegracaoWatch.status_detalhe = respToken;
 
-        await LogWatch.create(newWatch)
+        await LogWatch.create(newLogIntegracaoWatch)
         return response.status(400).send(respToken)
       }
 
@@ -907,7 +907,7 @@ class WatchController {
         return response.status(400).send({ menssage: 'Falha na validação do ticket.' })
       }
 
-      const newWatch = {
+      const newLogIntegracaoWatch = {
         // nome_cliente: pName,
         // documento_cliente: documento.replace(/[^0-9]/g, ''),
         email_cliente: pEmail,
@@ -950,10 +950,10 @@ class WatchController {
 
         if (respDeleteTicket && respDeleteTicket.Result && !respDeleteTicket.HasError && !respDeleteTicket.IsValidationError) {
           // return response.status(200).send({ menssage: 'Ticket deletado com sucesso.' })
-          newWatch.status = 'executada';
-          newWatch.status_detalhe = respDeleteTicket.Result;
+          newLogIntegracaoWatch.status = 'executada';
+          newLogIntegracaoWatch.status_detalhe = respDeleteTicket.Result;
 
-          const logWatch = await LogWatch.create(newWatch)
+          const logWatch = await LogWatch.create(newLogIntegracaoWatch)
           const id = logWatch.id
           const data = await LogWatch.query()
             .where({ id })
@@ -962,15 +962,15 @@ class WatchController {
           return response.status(200).send({ menssage: 'Ticket excluído com sucesso.', data })
 
         } else {
-          newWatch.status = 'falha';
-          newWatch.status_detalhe = respDeleteTicket.data;
-          await LogWatch.create(newWatch)
+          newLogIntegracaoWatch.status = 'falha';
+          newLogIntegracaoWatch.status_detalhe = respDeleteTicket.data;
+          await LogWatch.create(newLogIntegracaoWatch)
           return response.status(400).send(respDeleteTicket.data)
         }
       } else {
-        newWatch.status = 'falha';
-        newWatch.status_detalhe = respToken;
-        await LogWatch.create(newWatch)
+        newLogIntegracaoWatch.status = 'falha';
+        newLogIntegracaoWatch.status_detalhe = respToken;
+        await LogWatch.create(newLogIntegracaoWatch)
         return response.status(400).send(respToken)
       }
 
@@ -1047,7 +1047,7 @@ class WatchController {
 
       console.log({ url })
 
-      const newWatch = {
+      const newLogIntegracaoWatch = {
         nome_cliente: pName,
         documento_cliente: documento.replace(/[^0-9]/g, ''),
         email_cliente: pEmail,
@@ -1089,11 +1089,11 @@ class WatchController {
 
         if (respTicket && !respTicket.HasError && !respTicket.IsValidationError && respTicket.Result && respTicket.Result.ticket) {
           // return response.status(200).send(respTicket.Result)
-          newWatch.ticket = respTicket.Result.ticket;
-          newWatch.status = 'executada';
-          newWatch.status_detalhe = respTicket.Result;
+          newLogIntegracaoWatch.ticket = respTicket.Result.ticket;
+          newLogIntegracaoWatch.status = 'executada';
+          newLogIntegracaoWatch.status_detalhe = respTicket.Result;
 
-          const logWatch = await LogWatch.create(newWatch)
+          const logWatch = await LogWatch.create(newLogIntegracaoWatch)
           const id = logWatch.id
           const data = await LogWatch.query()
             .where({ id })
@@ -1101,17 +1101,17 @@ class WatchController {
 
           return data
         } else {
-          newWatch.status = 'falha';
-          newWatch.status_detalhe = respTicket.data;
+          newLogIntegracaoWatch.status = 'falha';
+          newLogIntegracaoWatch.status_detalhe = respTicket.data;
 
-          await LogWatch.create(newWatch)
+          await LogWatch.create(newLogIntegracaoWatch)
           return response.status(400).send(respTicket.data)
         }
       } else {
-        newWatch.status = 'falha';
-        newWatch.status_detalhe = respToken;
+        newLogIntegracaoWatch.status = 'falha';
+        newLogIntegracaoWatch.status_detalhe = respToken;
 
-        await LogWatch.create(newWatch)
+        await LogWatch.create(newLogIntegracaoWatch)
         return response.status(400).send(respToken)
       }
 
