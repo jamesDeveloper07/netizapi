@@ -70,7 +70,7 @@ class EventController {
 
         and even.deleted = false
         GROUP BY even.id, even.contract_id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
-        order by even.id desc
+        order by even.id asc
         limit 1000
         ) as eventos_svas`);
 
@@ -80,7 +80,7 @@ class EventController {
       //   .raw(`Select * FROM public.contract_events even
       //   where TRUE
       //   and even.id > ${paramLastEventId.valor}
-      //   order by even.id desc
+      //   order by even.id asc
       //   limit 1000 `);
 
       // later close the connection
@@ -89,7 +89,7 @@ class EventController {
       const contractEvents = selectContractEvents.rows
 
       if (contractEvents && contractEvents.length > 0) {
-        paramLastEventId.valor = contractEvents[0].id
+        paramLastEventId.valor = contractEvents[contractEvents.length-1].id
         paramLastEventId.updated_at = new Date();
         await paramLastEventId.save();
       }
