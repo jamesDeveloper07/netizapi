@@ -7,7 +7,7 @@ const RoleAndPermission = use('App/Utils/RoleAndPermission');
 const moment = require('moment-timezone');
 
 const Parametro = use('App/Models/Common/Parametro')
-const LogWatch = use('App/Models/Common/LogWatch')
+const LogIntegracao = use('App/Models/Common/LogIntegracao')
 
 class WatchController {
 
@@ -643,9 +643,9 @@ class WatchController {
           newLogIntegracaoWatch.status = 'executada';
           newLogIntegracaoWatch.status_detalhe = `Telefone alterado de ${oldPhone} para ${newPhone}`;
 
-          const logWatch = await LogWatch.create(newLogIntegracaoWatch)
+          const logWatch = await LogIntegracao.create(newLogIntegracaoWatch)
           const id = logWatch.id
-          const data = await LogWatch.query()
+          const data = await LogIntegracao.query()
             .where({ id })
             .first()
 
@@ -654,14 +654,14 @@ class WatchController {
           newLogIntegracaoWatch.status = 'falha';
           newLogIntegracaoWatch.status_detalhe = respEditPhone.data;
 
-          await LogWatch.create(newLogIntegracaoWatch)
+          await LogIntegracao.create(newLogIntegracaoWatch)
           return response.status(400).send(respEditPhone.data)
         }
       } else {
         newLogIntegracaoWatch.status = 'falha';
         newLogIntegracaoWatch.status_detalhe = respToken;
 
-        await LogWatch.create(newLogIntegracaoWatch)
+        await LogIntegracao.create(newLogIntegracaoWatch)
         return response.status(400).send(respToken)
       }
 
@@ -833,9 +833,9 @@ class WatchController {
           newLogIntegracaoWatch.status = 'executada';
           newLogIntegracaoWatch.status_detalhe = respUpdateStatus.Result;
 
-          const logWatch = await LogWatch.create(newLogIntegracaoWatch)
+          const logWatch = await LogIntegracao.create(newLogIntegracaoWatch)
           const id = logWatch.id
-          const data = await LogWatch.query()
+          const data = await LogIntegracao.query()
             .where({ id })
             .first()
 
@@ -844,14 +844,14 @@ class WatchController {
           newLogIntegracaoWatch.status = 'falha';
           newLogIntegracaoWatch.status_detalhe = respUpdateStatus.data;
 
-          await LogWatch.create(newLogIntegracaoWatch)
+          await LogIntegracao.create(newLogIntegracaoWatch)
           return response.status(400).send(respUpdateStatus.data)
         }
       } else {
         newLogIntegracaoWatch.status = 'falha';
         newLogIntegracaoWatch.status_detalhe = respToken;
 
-        await LogWatch.create(newLogIntegracaoWatch)
+        await LogIntegracao.create(newLogIntegracaoWatch)
         return response.status(400).send(respToken)
       }
 
@@ -953,9 +953,9 @@ class WatchController {
           newLogIntegracaoWatch.status = 'executada';
           newLogIntegracaoWatch.status_detalhe = respDeleteTicket.Result;
 
-          const logWatch = await LogWatch.create(newLogIntegracaoWatch)
+          const logWatch = await LogIntegracao.create(newLogIntegracaoWatch)
           const id = logWatch.id
-          const data = await LogWatch.query()
+          const data = await LogIntegracao.query()
             .where({ id })
             .first()
 
@@ -964,13 +964,13 @@ class WatchController {
         } else {
           newLogIntegracaoWatch.status = 'falha';
           newLogIntegracaoWatch.status_detalhe = respDeleteTicket.data;
-          await LogWatch.create(newLogIntegracaoWatch)
+          await LogIntegracao.create(newLogIntegracaoWatch)
           return response.status(400).send(respDeleteTicket.data)
         }
       } else {
         newLogIntegracaoWatch.status = 'falha';
         newLogIntegracaoWatch.status_detalhe = respToken;
-        await LogWatch.create(newLogIntegracaoWatch)
+        await LogIntegracao.create(newLogIntegracaoWatch)
         return response.status(400).send(respToken)
       }
 
@@ -1093,9 +1093,9 @@ class WatchController {
           newLogIntegracaoWatch.status = 'executada';
           newLogIntegracaoWatch.status_detalhe = respTicket.Result;
 
-          const logWatch = await LogWatch.create(newLogIntegracaoWatch)
+          const logWatch = await LogIntegracao.create(newLogIntegracaoWatch)
           const id = logWatch.id
-          const data = await LogWatch.query()
+          const data = await LogIntegracao.query()
             .where({ id })
             .first()
 
@@ -1104,14 +1104,14 @@ class WatchController {
           newLogIntegracaoWatch.status = 'falha';
           newLogIntegracaoWatch.status_detalhe = respTicket.data;
 
-          await LogWatch.create(newLogIntegracaoWatch)
+          await LogIntegracao.create(newLogIntegracaoWatch)
           return response.status(400).send(respTicket.data)
         }
       } else {
         newLogIntegracaoWatch.status = 'falha';
         newLogIntegracaoWatch.status_detalhe = respToken;
 
-        await LogWatch.create(newLogIntegracaoWatch)
+        await LogIntegracao.create(newLogIntegracaoWatch)
         return response.status(400).send(respToken)
       }
 

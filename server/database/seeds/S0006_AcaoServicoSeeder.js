@@ -29,7 +29,7 @@ class AcaoServicoSeeder {
       status: 'ativo'
     })
 
-    const reenvoDeezer = await AcaoServico.create({
+    const reenvioDeezer = await AcaoServico.create({
       servico_id: '1',
       acao_id: '3',
       status: 'ativo'
@@ -55,6 +55,18 @@ class AcaoServicoSeeder {
 
     const desativacaoWatch = await AcaoServico.create({
       servico_id: '3',
+      acao_id: '2',
+      status: 'ativo'
+    })
+
+    const ativacaoHBO = await AcaoServico.create({
+      servico_id: '4',
+      acao_id: '1',
+      status: 'ativo'
+    })
+
+    const desativacaoHBO = await AcaoServico.create({
+      servico_id: '4',
       acao_id: '2',
       status: 'ativo'
     })

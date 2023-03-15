@@ -8,6 +8,10 @@ class LogIntegracao extends Model {
     return 'common.log_integracao'
   }
 
+  acaoServico() {
+    return this.belongsTo('App/Models/Common/AcaoServico')
+  }
+
   servico() {
     return this.belongsTo('App/Models/Common/Servico')
   }

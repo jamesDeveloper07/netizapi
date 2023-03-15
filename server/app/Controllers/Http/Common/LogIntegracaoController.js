@@ -26,7 +26,7 @@ class LogIntegracaoController {
       response.status(400).send('Empresa não informada')
     }
 
-    const { id, cliente_id, servico_id, status, protocolo_externo_id } = request.only(['id', 'cliente_id', 'servico_id', 'status', 'protocolo_externo_id']);
+    const { id, cliente_id, servico_id, acao_servico_id, acao_id, status, protocolo_externo_id } = request.only(['id', 'cliente_id', 'servico_id', 'acao_servico_id', 'acao_id', 'status', 'protocolo_externo_id']);
 
     var { data_inicio_criacao, data_fim_criacao } = request.only(['data_inicio_criacao', 'data_fim_criacao']);
     var { data_inicio_execucao, data_fim_execucao } = request.only(['data_inicio_execucao', 'data_fim_execucao']);
@@ -46,6 +46,8 @@ class LogIntegracaoController {
     const query = LogIntegracao.query()
       .with('user')
       .with('servico')
+      .with('acaoServico.acao')
+      .with('acaoServico.servico')
       .orderBy('created_at', 'desc')
 
     if (id) {
@@ -58,16 +60,30 @@ class LogIntegracaoController {
       if (cliente) {
         if ((pesquisarTelefoneCliente && pesquisarTelefoneCliente === 'true')) {
           var tel = cliente.replace(/[^0-9]/g, '');
-          query.whereRaw(`common.log_watch.telefone_cliente like '%${tel}%'`)
+          query.whereRaw(`common.log_integracao.telefone_cliente like '%${tel}%'`)
         } else {
           var doc = cliente.replace(/[^0-9]/g, '');
-          query.whereRaw(`common.log_watch.nome_cliente ilike '%${cliente}%' ${doc ? `or common.log_watch.documento_cliente like '%${doc}%'` : ''} `)
+          query.whereRaw(`common.log_integracao.nome_cliente ilike '%${cliente}%' ${doc ? `or common.log_integracao.documento_cliente like '%${doc}%'` : ''} `)
         }
       }
     }
 
-    if (servico_id) {
-      query.where({ servico_id })
+
+    if (acao_servico_id && acao_servico_id > 0) {
+      query.where({ acao_servico_id })
+    } else {
+      if (servico_id && servico_id > 0) {
+        if (acao_id && acao_id > 0) {
+          query.whereIn('acao_servico_id', Database.from('common.acoes_servicos').select('id').where({ servico_id }).where({ acao_id }))
+        } else {
+          query.where({ servico_id })
+        }
+      } else {
+        if (acao_id && acao_id > 0) {
+          query.whereIn('acao_servico_id', Database.from('common.acoes_servicos').select('id').where({ acao_id }))
+        }
+      }
+
     }
 
     if (status) {

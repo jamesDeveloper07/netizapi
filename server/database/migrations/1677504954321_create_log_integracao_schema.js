@@ -15,6 +15,7 @@ class CreateLogIntegracaoSchema extends Schema {
       table.string('cliente_erp_id').unsigned().comment('Id do cliente no ERP')
 
       table.integer('servico_id').unsigned().references('id').inTable('common.servicos')
+      table.integer('acao_servico_id').unsigned().references('id').inTable('common.acoes_servicos')
 
       table.string('pacote_id').unsigned().comment('Id do pacote na plataforma watch')
       table.string('assinante_id_integracao').unsigned().comment('Id utilizado na integração com a plataforma watch')

@@ -10,6 +10,7 @@ const Parametro = use('App/Models/Common/Parametro')
 const LogIntegracao = use('App/Models/Common/LogIntegracao')
 
 const Servico = use('App/Models/Common/Servico');
+const AcaoServico = use('App/Models/Common/AcaoServico');
 
 const Solicitacao = use('App/Models/Common/Solicitacao');
 const Cliente = use('App/Models/Common/Cliente');
@@ -30,58 +31,58 @@ class EventController {
         return response.status(500).send({ menssage: 'Parametro last_event_id não encontrado!' })
       }
 
-      const selectContractEvents = await Database
-        .connection('pgvoalle')
-        .raw(`Select *,
-        (svas is not null) as isServicoDigital,
-        (svas is not null and svas ilike '%698%') as isDeezer,
-        (svas is not null and svas ilike '%699%') as isWatch,
-        (svas is not null and svas ilike '%700%') as isHBO
-
-        from (
-        SELECT even.id, even.contract_id, even.contract_event_type_id, even.date, even.description
-        ,cont.client_id, cli.name, cli.tx_id as cpf, cli.cell_phone_1 as phone, cli.email
-        , cont.stage, cont.v_stage, cont.status, cont.v_status
-        , string_agg(distinct(item.id)||'' , ',') as itens
-        , string_agg(distinct(item.service_product_id)||'' , ',') as service_products
-        , string_agg(comp.service_product_id||'' , ',') as svas
-
-        FROM erp.contract_events even
-        inner join erp.contracts cont on  (even.contract_id = cont.id)
-        inner join erp.people cli on (cont.client_id = cli.id)
-        inner join erp.contract_items item on (cont.id = item.contract_id and item.deleted is FALSE and item.contract_service_tag_id is not null)
-        inner join erp.service_compositions comp on (comp.parent_id = item.service_product_id and comp.service_product_id in (698,699,700))
-
-        where TRUE
-        and even.id > ${paramLastEventId.valor}
-
-        and (even.contract_event_type_id = 3 --cadastro aprovado
-        or even.contract_event_type_id in(110, 153, 154, 155, 156, 157,158,159,160,161,162,163,164,165,166,167,168,169,170,174,175) ) --cadastro cancelados
-
-        --and even.contract_event_type_id = 3 --cadastro aprovado
-        --and even.contract_event_type_id = 27 --inclusão de serviço
-        --and even.contract_event_type_id in(3, 156) --cadastro aprovado ou cancelado(Mudança)
-        --and even.contract_event_type_id = 105
-        --and even.contract_event_type_id = 28
-
-        --and cont.id = 9762 -- HBO
-        --and cont.id = 220085 -- cancelado
-        --and cont.id = 214515 -- cancelado
-
-        and even.deleted = false
-        GROUP BY even.id, even.contract_id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
-        order by even.id asc
-        limit 1000
-        ) as eventos_svas`);
-
-
       // const selectContractEvents = await Database
-      //   .connection('pg')
-      //   .raw(`Select * FROM public.contract_events even
+      //   .connection('pgvoalle')
+      //   .raw(`Select *,
+      //   (svas is not null) as isServicoDigital,
+      //   (svas is not null and svas ilike '%698%') as isDeezer,
+      //   (svas is not null and svas ilike '%699%') as isWatch,
+      //   (svas is not null and svas ilike '%700%') as isHBO
+
+      //   from (
+      //   SELECT even.id, even.contract_id, even.contract_event_type_id, even.date, even.description
+      //   ,cont.client_id, cli.name, cli.tx_id as cpf, cli.cell_phone_1 as phone, cli.email
+      //   , cont.stage, cont.v_stage, cont.status, cont.v_status
+      //   , string_agg(distinct(item.id)||'' , ',') as itens
+      //   , string_agg(distinct(item.service_product_id)||'' , ',') as service_products
+      //   , string_agg(comp.service_product_id||'' , ',') as svas
+
+      //   FROM erp.contract_events even
+      //   inner join erp.contracts cont on  (even.contract_id = cont.id)
+      //   inner join erp.people cli on (cont.client_id = cli.id)
+      //   inner join erp.contract_items item on (cont.id = item.contract_id and item.deleted is FALSE and item.contract_service_tag_id is not null)
+      //   inner join erp.service_compositions comp on (comp.parent_id = item.service_product_id and comp.service_product_id in (698,699,700))
+
       //   where TRUE
       //   and even.id > ${paramLastEventId.valor}
+
+      //   and (even.contract_event_type_id = 3 --cadastro aprovado
+      //   or even.contract_event_type_id in(110, 153, 154, 155, 156, 157,158,159,160,161,162,163,164,165,166,167,168,169,170,174,175) ) --cadastro cancelados
+
+      //   --and even.contract_event_type_id = 3 --cadastro aprovado
+      //   --and even.contract_event_type_id = 27 --inclusão de serviço
+      //   --and even.contract_event_type_id in(3, 156) --cadastro aprovado ou cancelado(Mudança)
+      //   --and even.contract_event_type_id = 105
+      //   --and even.contract_event_type_id = 28
+
+      //   --and cont.id = 9762 -- HBO
+      //   --and cont.id = 220085 -- cancelado
+      //   --and cont.id = 214515 -- cancelado
+
+      //   and even.deleted = false
+      //   GROUP BY even.id, even.contract_id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
       //   order by even.id asc
-      //   limit 1000 `);
+      //   limit 1000
+      //   ) as eventos_svas`);
+
+
+      const selectContractEvents = await Database
+        .connection('pg')
+        .raw(`Select * FROM public.contract_events even
+        where TRUE
+        and even.id > ${paramLastEventId.valor}
+        order by even.id asc
+        limit 1000 `);
 
       // later close the connection
       Database.close(['pg']);
@@ -89,7 +90,7 @@ class EventController {
       const contractEvents = selectContractEvents.rows
 
       if (contractEvents && contractEvents.length > 0) {
-        paramLastEventId.valor = contractEvents[contractEvents.length-1].id
+        paramLastEventId.valor = contractEvents[contractEvents.length - 1].id
         paramLastEventId.updated_at = new Date();
         await paramLastEventId.save();
       }
@@ -105,14 +106,20 @@ class EventController {
 
             if (event.isdeezer) {
               var servico_id = 1
+              var acao_id = 1
               var tipoExecucao = 'activate';
 
               const servico = await Servico.query()
                 .where({ id: servico_id })
                 .first()
 
+              const acaoServico = await AcaoServico.query()
+                .where({ servico_id })
+                .where({ acao_id })
+                .first()
+
               if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
-                var successDeezer = await this.executarDeezer(event, servico, tipoExecucao);
+                var successDeezer = await this.executarDeezer(event, servico, acaoServico, tipoExecucao);
 
                 if (successDeezer) {
                   SVAsOK += 'Deezer'
@@ -128,14 +135,20 @@ class EventController {
 
             if (event.iswatch) {
               var servico_id = 3
+              var acao_id = 1
 
               const servico = await Servico.query()
                 .where({ id: servico_id })
                 .first()
 
+              const acaoServico = await AcaoServico.query()
+                .where({ servico_id })
+                .where({ acao_id })
+                .first()
+
               if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
 
-                var successWatch = await this.inserirTicketWatch(event, servico);
+                var successWatch = await this.inserirTicketWatch(event, servico, acaoServico);
 
                 if (successWatch) {
                   SVAsOK += separadorOk + 'Watch Brasil'
@@ -151,12 +164,19 @@ class EventController {
 
             if (event.ishbo) {
               var servico_id = 4
+              var acao_id = 1
+
               const servico = await Servico.query()
                 .where({ id: servico_id })
                 .first()
 
+              const acaoServico = await AcaoServico.query()
+                .where({ servico_id })
+                .where({ acao_id })
+                .first()
+
               if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
-                var successHBO = await this.inserirTicketWatch(event, servico);
+                var successHBO = await this.inserirTicketWatch(event, servico, acaoServico);
 
                 if (successHBO) {
                   SVAsOK += separadorOk + 'HBO Max'
@@ -182,15 +202,21 @@ class EventController {
 
               if (event.isdeezer) {
                 var servico_id = 1
+                var acao_id = 2
                 var tipoExecucao = 'deactivate';
 
                 const servico = await Servico.query()
                   .where({ id: servico_id })
                   .first()
 
+                const acaoServico = await AcaoServico.query()
+                  .where({ servico_id })
+                  .where({ acao_id })
+                  .first()
+
                 if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
 
-                  var successDeezer = await this.executarDeezer(event, servico, tipoExecucao);
+                  var successDeezer = await this.executarDeezer(event, servico, acaoServico, tipoExecucao);
 
                   if (successDeezer) {
                     SVAsOK += 'Deezer'
@@ -206,12 +232,19 @@ class EventController {
 
               if (event.iswatch) {
                 var servico_id = 3
+                var acao_id = 2
+
                 const servico = await Servico.query()
                   .where({ id: servico_id })
                   .first()
 
+                const acaoServico = await AcaoServico.query()
+                  .where({ servico_id })
+                  .where({ acao_id })
+                  .first()
+
                 if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
-                  var successWatch = await this.deletarTicketWatch(event, servico);
+                  var successWatch = await this.deletarTicketWatch(event, servico, acaoServico);
 
                   if (successWatch) {
                     SVAsOK += separadorOk + 'Watch Brasil'
@@ -227,12 +260,19 @@ class EventController {
 
               if (event.ishbo) {
                 var servico_id = 4
+                var acao_id = 2
+
                 const servico = await Servico.query()
                   .where({ id: servico_id })
                   .first()
 
+                const acaoServico = await AcaoServico.query()
+                  .where({ servico_id })
+                  .where({ acao_id })
+                  .first()
+
                 if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
-                  var successHBO = await this.deletarTicketWatch(event, servico);
+                  var successHBO = await this.deletarTicketWatch(event, servico, acaoServico);
 
                   if (successHBO) {
                     SVAsOK += separadorOk + 'HBO Max'
@@ -283,7 +323,7 @@ class EventController {
     return false;
   }
 
-  async executarDeezer(event, servico, tipoExecucao) {
+  async executarDeezer(event, servico, acaoServico, tipoExecucao) {
     try {
 
       //const hostApi = 'https://beta-eng.hubisp.net.br/notification/';
@@ -312,6 +352,7 @@ class EventController {
         protocolo_externo_id: event.id,
         user_id: 1,
         servico_id: servico.id,
+        acao_servico_id: acaoServico.id,
         acao: tipoExecucao,
         data_evento: event.date
         // status: 'executada',
@@ -373,7 +414,7 @@ class EventController {
   }
 
 
-  async inserirTicketWatch(event, servico) {
+  async inserirTicketWatch(event, servico, acaoServico) {
     try {
 
       const pPacote = parseInt(servico.integracao_id);
@@ -420,6 +461,7 @@ class EventController {
         protocolo_externo_id,
         user_id: 1,
         servico_id: servico.id,
+        acao_servico_id: acaoServico.id,
         acao: 'insert ticket',
         data_evento: event.date
         // status: 'executada',
@@ -495,7 +537,7 @@ class EventController {
   }
 
 
-  async deletarTicketWatch(event, servico) {
+  async deletarTicketWatch(event, servico, acaoServico) {
     try {
       //const { pPacote, pTicket, pEmail, IDIntegracaoAssinante, pStatus } = request.only(['pPacote', 'pTicket', 'pEmail', 'IDIntegracaoAssinante', 'pStatus'])
       //const { protocolo_externo_id } = request.only(['protocolo_externo_id'])
@@ -530,6 +572,7 @@ class EventController {
         protocolo_externo_id,
         user_id: 1,
         servico_id: servico.id,
+        acao_servico_id: acaoServico.id,
         acao: 'excluir ticket',
         data_evento: event.date
         // ticket: pTicket,
