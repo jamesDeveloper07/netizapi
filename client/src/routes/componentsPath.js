@@ -30,6 +30,8 @@ import Tickets from "../pages/common/Empresas/Watch/Pacotes/Tickets";
 import NewTicket from "../pages/common/Empresas/Watch/Pacotes/Tickets/New";
 // import EditSolicitacao from "../pages/common/Empresas/Solicitacoes/Edit";
 
+import LogIntegracao from "../pages/common/Empresas/LogIntegracao";
+
 import DashboardAppNetiz from "../pages/dashboard/appNetiz";
 
 import Notificacoes from '../pages/security/Notificacoes'
@@ -197,11 +199,11 @@ const paths = [
         component: NewTicket,
         layout: '/admin'
     },
-    // {
-    //     path: '/solicitacoes/new',
-    //     component: NewSolicitacao,
-    //     layout: '/admin'
-    // },
+    {
+        path: '/log_integracao',
+        component: LogIntegracao,
+        layout: '/admin'
+    },
     // {
     //     path: '/solicitacoes/:id/edit',
     //     component: EditSolicitacao,

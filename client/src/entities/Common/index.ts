@@ -3,6 +3,8 @@ export type { default as TermosUso } from './TermosUso'
 export type { default as ClienteSolicitacao } from './ClienteSolicitacao'
 export type { default as AcaoServicoSolicitacao } from './AcaoServicoSolicitacao'
 export type { default as Solicitacao } from './Solicitacao'
+export type { default as Servico } from './Servico'
+export type { default as LogIntegracao } from './LogIntegracao'
 
 //validar para apagar
 export type { default as Telefone } from './Telefone'
