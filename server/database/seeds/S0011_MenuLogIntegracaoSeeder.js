@@ -23,6 +23,10 @@ class MenuLogIntegracaoSeeder {
     try {
 
       const administrador = await Role.findBy({ slug: 'administrador' }, trx)
+      const supervisor = await Role.findBy({ slug: 'supervisor' }, trx)
+      const relacionamento = await Role.findBy({ slug: 'relacionamento' }, trx)
+      const financeiro = await Role.findBy({ slug: 'financeiro' }, trx)
+
       const parentMenu = await Menu.findBy({ alias: 'administracao_parent' }, trx)
 
       const menuLog = await Menu.findOrCreate({ alias: 'log_integracao' }, {
@@ -39,6 +43,18 @@ class MenuLogIntegracaoSeeder {
       await menuLog.roles().attach([
         administrador.id
       ]);
+
+      await menuLog.roles().attach([
+        supervisor.id
+      ]);
+
+      await menuLog.roles().attach([
+        relacionamento.id
+      ]);
+
+      await menuLog.roles().attach([
+        financeiro.id
+      ]); 
 
       await trx.commit();
 

@@ -60,13 +60,13 @@ class SendNotificacoes {
       const urlApi = 'https://fcm.googleapis.com/fcm/send';
 
       const select = await Database.raw(`SELECT notif.id, notuser.user_id, users.name as user_name, titulo, mensagem, acao_clique_url, icone_url, sub.icon_font,
-origem_id, notif.created_at, scheduled_to, sended_at, readed_at, notif.updated_at, submodulo_id, sub.nome as submodulo_nome, sub.modulo_id, mod.nome as modulo_nome 
-from security.notificacoes_users notuser 
-join security.notificacoes notif on (notif.id = notuser.notificacao_id) 
-join security.users as users on (users.id = notuser.user_id) 
-join security.submodulos sub on (notif.submodulo_id = sub.id) 
-join security.modulos  mod on (sub.modulo_id = mod.id) 
-where sended_at is null and mod.status like 'A' and sub.status like 'A' 
+origem_id, notif.created_at, scheduled_to, sended_at, readed_at, notif.updated_at, submodulo_id, sub.nome as submodulo_nome, sub.modulo_id, mod.nome as modulo_nome
+from security.notificacoes_users notuser
+join security.notificacoes notif on (notif.id = notuser.notificacao_id)
+join security.users as users on (users.id = notuser.user_id)
+join security.submodulos sub on (notif.submodulo_id = sub.id)
+join security.modulos  mod on (sub.modulo_id = mod.id)
+where sended_at is null and mod.status like 'A' and sub.status like 'A'
 and users.status is true and scheduled_to < now()`);
 
       const notificacoes = select.rows;
@@ -103,7 +103,8 @@ and users.status is true and scheduled_to < now()`);
                 responseType: 'json',
                 headers: {
                   "content-type": "application/json",
-                  "authorization": "key=AAAAM4YfNU0:APA91bGF1ohOoivpDv41e1ZGZCm-RzKx9Z9IlwiF94Nfz4psMJpKa6QPBNeJoi0AqaphVKg2Elo76rPk4IlcyYD_o49RWwfVTtLT9CkakeFfYoLFDa04WHFtRI8kPlvcjY-NzgfJOyxv"
+                  // "authorization": "key=AAAAM4YfNU0:APA91bGF1ohOoivpDv41e1ZGZCm-RzKx9Z9IlwiF94Nfz4psMJpKa6QPBNeJoi0AqaphVKg2Elo76rPk4IlcyYD_o49RWwfVTtLT9CkakeFfYoLFDa04WHFtRI8kPlvcjY-NzgfJOyxv"
+                  "authorization": "key=AAAAcoes4vM:APA91bGXQniW88fco1q_Xlck-3wlR5CaZqZaLhZWl5ZKL3gzNBZJTge5uQiV5t70-W_dgidahp76GfFctiI4sf9TevGO39nVE7uUhfY6sqbHO4owRmQqPOIViEd-auR7U2RJLFSWZIer"
                 },
                 data: dataNot
               })
