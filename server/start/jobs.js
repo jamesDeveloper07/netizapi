@@ -9,4 +9,5 @@ module.exports = [
     "App/Jobs/SendNotificacoes",
     "App/Jobs/GerenciarNotificacoesParametrizadas",
     // "App/Jobs/SendEmailsAvulsos",
+    "App/Jobs/ExecutarIntegracoes",
 ];

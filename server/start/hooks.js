@@ -12,6 +12,7 @@ hooks.after.providersBooted(() => {
     const SendNotificacoesJob = use('App/Jobs/SendNotificacoes')
     const GerenciarNotificacoesParametrizadasJob = use('App/Jobs/GerenciarNotificacoesParametrizadas')
     // const SendEmailsAvulsosJob = use('App/Jobs/SendEmailsAvulsos')
+    const ExecutarIntegracoesJob = use('App/Jobs/ExecutarIntegracoes')
 
     // Bull.add(FacebookLeadsJob.key, {}, {
     //     delay: 0,
@@ -47,6 +48,13 @@ hooks.after.providersBooted(() => {
             cron: "0 */5 * * * *"
         }
     })
+
+    Bull.add(ExecutarIntegracoesJob.key, {}, {
+      delay: 0,
+      repeat: {
+          cron: "0 */5 * * * *"
+      }
+  })
 
     // Bull.add(SendEmailsAvulsosJob.key, {}, {
     //     delay: 0,
