@@ -67,7 +67,11 @@ const LogIntegracaoIndex: React.FC = ({ }) => {
 
     try {
       setExecutandoPendente(true)
-      const response = await api.get(`voalle/processareventos`)
+      const response = await api.get(`voalle/processareventos`, {
+        params: {
+          emp_id: empresaSelecionada?.id
+        }
+      })
 
       console.log('RESPONSE EXECUTAR SOLICITACOES PENDETES');
       console.log(response.data);
