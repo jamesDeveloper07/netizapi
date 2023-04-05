@@ -31,7 +31,7 @@ class InformativoAppNetizController {
 
     const selectTotalClientes = await Database
     .connection('pgvoalle')
-    .raw(`select count(distinct(client_id)) FROM erp.contracts cont where cont.deleted is false and cont.status not in (4,9)`)
+    .raw(`select count(distinct(client_id)) FROM erp.contracts cont where cont.deleted is false and cont.stage = 3 and cont.status not in (4,9)`)
   const totalClientes = selectTotalClientes.rows[0].count;
   Database.close(['pgvoalle']);
 
