@@ -326,14 +326,14 @@ class EventRepository {
 
             console.log(`Executado Desbloqueio para ${event.name} - Assinaturas (${SVAsOK})`)
 
-          } else {
-            if (this.isInclusaoAlteracaoOuExclusaoDeServico(event.event_type_id)) {
-              console.log(`IMPLANTAR INCLUSÃO, ALTERAÇÂO OU EXCLUSÃO DE SERVIÇOS`)
-            } else {
-              console.log(`TIPO DE EVENTO NÃO PREVISTO: ID ${event.event_type_id}`)
-            }
           }
 
+        } else {
+          if (this.isInclusaoAlteracaoOuExclusaoDeServico(event.event_type_id)) {
+            console.log(`IMPLANTAR INCLUSÃO, ALTERAÇÂO OU EXCLUSÃO DE SERVIÇOS`)
+          } else {
+            console.log(`TIPO DE EVENTO NÃO PREVISTO: ID ${event.event_type_id}`)
+          }
         }
 
       }
