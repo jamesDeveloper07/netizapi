@@ -939,9 +939,17 @@ class EventRepository {
     var SVAsError = '';
     var separadorError = '';
 
-    await this.cancelarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError);
-    await this.cancelarWatch(event, SVAsOK, separadorOk, SVAsError, separadorError);
-    await this.cancelarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    if (event.isdeezer) {
+      await this.cancelarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    }
+
+    if (event.iswatch) {
+      await this.cancelarWatch(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    }
+
+    if (event.ishbo) {
+      await this.cancelarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    }
 
     console.log(`Remover assinatura (${SVAsOK}) para ${event.name}`)
   }
