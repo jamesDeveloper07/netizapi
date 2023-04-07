@@ -39,12 +39,12 @@ const FilterTickets: React.FC<Props> = ({ title, notify, load, ...props }) => {
 
     const { empresaSelecionada } = useContext(EmpresaContext)
     const [codigoIntegracao, setCodigoIntegracao] = usePersistedState('codigoIntegracao', null)
-    const [pesquisarByCodigoIntegracaoPadrao, setPesquisarByCodigoIntegracaoPadrao] = usePersistedState('pesquisarByCodigoIntegracaoPadrao', true)
+    // const [pesquisarByCodigoIntegracaoPadrao, setPesquisarByCodigoIntegracaoPadrao] = usePersistedState('pesquisarByCodigoIntegracaoPadrao', false)
 
     const [emailTicket, setEmailTicket] = usePersistedState('emailTicket', null)
 
     //Flag para desabilitar btn pesuisar 
-    const [disableButtonSearch, setDisableButtonSearch] = useState(true)
+    const [disableButtonSearch, setDisableButtonSearch] = useState(false)
 
     //Flag para definir tempo de execução
     const [runLoad, setRunLoad] = useState(true)
@@ -62,19 +62,19 @@ const FilterTickets: React.FC<Props> = ({ title, notify, load, ...props }) => {
         }
     }, [runLoad])
 
-    useEffect(() => {        
-        if (codigoIntegracao || pesquisarByCodigoIntegracaoPadrao) {
-            setDisableButtonSearch(false)
-        }else{
-            setDisableButtonSearch(true)
-        }
-    }, [emailTicket, codigoIntegracao, pesquisarByCodigoIntegracaoPadrao])
+    // useEffect(() => {        
+    //     if (codigoIntegracao || emailTicket || pesquisarByCodigoIntegracaoPadrao) {
+    //         setDisableButtonSearch(false)
+    //     }else{
+    //         setDisableButtonSearch(true)
+    //     }
+    // }, [emailTicket, codigoIntegracao, pesquisarByCodigoIntegracaoPadrao])
 
-    useEffect(() => {
-        if (pesquisarByCodigoIntegracaoPadrao) {
-            setCodigoIntegracao('');
-        }
-    }, [pesquisarByCodigoIntegracaoPadrao])
+    // useEffect(() => {
+    //     if (pesquisarByCodigoIntegracaoPadrao) {
+    //         setCodigoIntegracao('');
+    //     }
+    // }, [pesquisarByCodigoIntegracaoPadrao])
 
 
     function throwError(text: string) {
@@ -85,14 +85,14 @@ const FilterTickets: React.FC<Props> = ({ title, notify, load, ...props }) => {
         load({
             pAssinanteIDIntegracao: codigoIntegracao,
             pEmailUsuario: emailTicket,
-            notFixIdIntegracao: !pesquisarByCodigoIntegracaoPadrao,
+            // notFixIdIntegracao: !pesquisarByCodigoIntegracaoPadrao,
         })
     }
 
     function handleClearFilter() {
         setEmailTicket('')
         setCodigoIntegracao('')
-        setPesquisarByCodigoIntegracaoPadrao(true)
+        // setPesquisarByCodigoIntegracaoPadrao(true)
     }
 
     function handleMultipleSelect(target: any, state: any) {
@@ -146,7 +146,7 @@ const FilterTickets: React.FC<Props> = ({ title, notify, load, ...props }) => {
                                 >
                                     Código Integração
                                 </label>
-                                <div className="custom-control custom-checkbox">
+                                {/* <div className="custom-control custom-checkbox">
                                     <input
                                         className="custom-control-input"
                                         id="check-cod-integracao"
@@ -158,10 +158,10 @@ const FilterTickets: React.FC<Props> = ({ title, notify, load, ...props }) => {
                                         className="custom-control-label" htmlFor="check-cod-integracao">
                                         Código Padrão
                                     </label>
-                                </div>
+                                </div> */}
                             </div>
                             <Input
-                                disabled={pesquisarByCodigoIntegracaoPadrao}
+                                // disabled={pesquisarByCodigoIntegracaoPadrao}
                                 placeholder='Código...'
                                 className="form-control"
                                 value={codigoIntegracao}
