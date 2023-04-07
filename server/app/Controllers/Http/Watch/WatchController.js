@@ -314,12 +314,12 @@ class WatchController {
       const { pPacote } = request.only(['pPacote'])
       const { pEmailUsuario } = request.only(['pEmailUsuario'])
       const { pAssinanteIDIntegracao } = request.only(['pAssinanteIDIntegracao'])
-      const { notFixIdIntegracao } = request.only(['notFixIdIntegracao'])
+      // const { notFixIdIntegracao } = request.only(['notFixIdIntegracao'])
       var url = 'https://apiweb.watch.tv.br/watch/v1/tickets/get';
       var separador = '?'
 
-      console.log('\n\n')
-      console.log({ notFixIdIntegracao })
+      // console.log('\n\n')
+      // console.log({ notFixIdIntegracao })
 
       if (pPacote && pPacote > 0) {
         url += separador + 'pPacote=' + pPacote;
@@ -331,15 +331,16 @@ class WatchController {
         separador = '&'
       }
 
-      if (pAssinanteIDIntegracao) {
+      if (pAssinanteIDIntegracao && pAssinanteIDIntegracao.trim().length > 0 ) {
         url += separador + 'pAssinanteIDIntegracao=' + pAssinanteIDIntegracao;
         separador = '&'
-      } else {
-        if (!notFixIdIntegracao || (notFixIdIntegracao && notFixIdIntegracao == 'false')) {
-          url += separador + 'pAssinanteIDIntegracao=n3t1z-api';
-          separador = '&'
-        }
       }
+      // else {
+      //   if (!notFixIdIntegracao || (notFixIdIntegracao && notFixIdIntegracao == 'false')) {
+      //     url += separador + 'pAssinanteIDIntegracao=n3t1z-api';
+      //     separador = '&'
+      //   }
+      // }
 
       console.log('\n' + url)
 
