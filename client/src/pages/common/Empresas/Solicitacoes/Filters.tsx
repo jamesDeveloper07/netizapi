@@ -33,7 +33,7 @@ interface Props {
     search?: boolean
 }
 
-const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
+const FilterSolicitacoes: React.FC<Props> = ({ title, notify, load, ...props }) => {
 
     const { empresaSelecionada } = useContext(EmpresaContext)
 
@@ -50,20 +50,24 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
 
     const [status, setStatus] = usePersistedState('statusSolicitacoes', null)
 
-    const [acaoServico, setAcaoServico] = usePersistedState('acaoServicoSolicitacoes', null)
+    // const [acaoServico, setAcaoServico] = usePersistedState('acaoServicoSolicitacoes', null)
+    const [acao, setAcao] = usePersistedState('acaoSolicitacoes', null)
     const [servico, setServico] = usePersistedState('servicoSolicitacoes', null)
 
     const [colaboradores, setColaboradores] = usePersistedState('colaboradores', [])
 
     //Listas para carregar os filtros
     const [users, setUsers] = useState([])
-    const [acoesServicosList, setAcoesServicosList] = useState([])
+    // const [acoesServicosList, setAcoesServicosList] = useState([])
+    const [acoesList, setAcoesList] = useState([])
     const [servicos, setServicos] = useState([])
 
     //Flag para definir tempo de execução
     const [runLoad, setRunLoad] = useState(true)
     //flag pra chamar o fillAcoesServicos
-    const [runFillAcoesServicos, setRunFillAcoesServicos] = useState(true)
+    // const [runFillAcoesServicos, setRunFillAcoesServicos] = useState(true)
+    //flag pra chamar o fillAcoes
+    const [runFillAcoes, setRunFillAcoes] = useState(true)
 
     useEffect(() => {
         if (runLoad) {
@@ -76,6 +80,7 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
     useEffect(() => {
         (async () => {
             if (servicos.length === 0) await loadServicos()
+            if (acoesList.length === 0) await loadAcoes()
             // if (hasPermission('ver-todas-solicitacos') && users.length === 0) {
             if (users.length === 0) {
                 await loadColaboradores()
@@ -83,9 +88,9 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
         })()
     }, [])
 
-    useEffect(() => {
-        loadAcoesServicos(servico)
-    }, [servico])
+    // useEffect(() => {
+    //     loadAcoesServicos(servico)
+    // }, [servico])
 
     async function loadServicos() {
         try {
@@ -101,40 +106,62 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
         }
     }
 
-    async function loadAcoesServicos(servico: any) {
-        if (servico && servico == -1) {
-            servico = null
-        }
+    async function loadAcoes() {
         try {
-            const response = await api.get(`/common/get_acoes_by_servico`, {
-                params: {
-                    servico_id: servico
-                }
-            })
+            const response = await api.get(`/common/acao`)
 
             if (response.data) {
                 const data = await response.data
-                setAcoesServicosList(data)
+                setAcoesList(data)
             }
 
-            // if (produtos && produtos.length > 0 && runFillAcoesServicos) {
-            //     setProdutos(produtos)
-            // } else {
-            //     setProdutos([])
-            // }
-
-            if (acaoServico && acaoServico > 0 && runFillAcoesServicos) {
-                setAcaoServico(acaoServico)
+            if (acao && acao > 0 && runFillAcoes) {
+                setAcao(acao)
             } else {
-                setAcaoServico(null)
+                setAcao(null)
             }
 
 
-            setRunFillAcoesServicos(false)
+            setRunFillAcoes(false)
         } catch (error) {
             console.log(error)
         }
     }
+
+    // async function loadAcoesServicos(servico: any) {
+    //     if (servico && servico == -1) {
+    //         servico = null
+    //     }
+    //     try {
+    //         const response = await api.get(`/common/get_acoes_by_servico`, {
+    //             params: {
+    //                 servico_id: servico
+    //             }
+    //         })
+
+    //         if (response.data) {
+    //             const data = await response.data
+    //             setAcoesServicosList(data)
+    //         }
+
+    //         // if (produtos && produtos.length > 0 && runFillAcoesServicos) {
+    //         //     setProdutos(produtos)
+    //         // } else {
+    //         //     setProdutos([])
+    //         // }
+
+    //         if (acaoServico && acaoServico > 0 && runFillAcoesServicos) {
+    //             setAcaoServico(acaoServico)
+    //         } else {
+    //             setAcaoServico(null)
+    //         }
+
+
+    //         setRunFillAcoesServicos(false)
+    //     } catch (error) {
+    //         console.log(error)
+    //     }
+    // }
 
     async function loadColaboradores() {
         try {
@@ -239,7 +266,9 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
             cliente,
             pesquisarTelefoneCliente,
             protocolo_externo_id: protocoloExterno,
-            acao_servico_id: acaoServico,
+            // acao_servico_id: acaoServico,
+            servico_id: servico,
+            acao_id: acao,
             status,
             colaboradores
         })
@@ -258,8 +287,9 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
         setCliente('')
         setPesquisarTelefoneCliente(false)
 
-        setAcaoServico(null);
+        // setAcaoServico(null);
         setServico(null);
+        setAcao(null);
 
         setColaboradores([]);
 
@@ -643,10 +673,10 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
                                         placeholder: "Selecione..."
                                     }}
                                     //@ts-ignore
-                                    onSelect={({ target }) => setAcaoServico(target.value)}
-                                    value={acaoServico}
+                                    onSelect={({ target }) => setAcao(target.value)}
+                                    value={acao}
                                     //@ts-ignore
-                                    data={acoesServicosList.map((item) => ({ id: item.id, text: item.acao.nome }))}
+                                    data={acoesList.map((item) => ({ id: item.id, text: item.nome }))}
                                 />
                             </InputGroup>
                         </FormGroup>
@@ -654,14 +684,9 @@ const FilterTermos: React.FC<Props> = ({ title, notify, load, ...props }) => {
                     <ColaboradorSelect />
                 </Row>
 
-
-
-
-
-
             </Filters>
         </>
     );
 }
 
-export default FilterTermos;
+export default FilterSolicitacoes;

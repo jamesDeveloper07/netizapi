@@ -40,6 +40,7 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
     {
       dataField: "acaoServico.acao.nome",
       text: 'Ação',
+      formatter: (cell: any, row: any) => acaoServicoFormater(cell, row)
     },
     {
       dataField: 'created_at',
@@ -102,7 +103,7 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
   function getStatusDetalhe(row: any) {
     if (row) {
       if (row.status_detalhe) {
-        return row.status_detalhe 
+        return row.status_detalhe
       }
     }
     return null
@@ -119,6 +120,17 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
       >
         {row.status}
       </Badge>
+    </>
+  )
+
+  const acaoServicoFormater = (cell: any, row: any) => (
+    <>
+      <div
+        id={`acao-${row.id}`}
+        title={`${row.acao}`}
+      >
+        {row.acaoServico.acao.nome}
+      </div>
     </>
   )
 

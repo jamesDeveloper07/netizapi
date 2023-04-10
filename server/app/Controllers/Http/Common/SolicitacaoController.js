@@ -26,7 +26,7 @@ class SolicitacaoController {
       response.status(400).send('Empresa não informada')
     }
 
-    const { id, cliente_id, acao_servico_id, status, protocolo_externo_id } = request.only(['id', 'cliente_id', 'acao_servico_id', 'status', 'protocolo_externo_id']);
+    const { id, cliente_id, servico_id, acao_servico_id, acao_id, status, protocolo_externo_id } = request.only(['id', 'cliente_id', 'servico_id', 'acao_servico_id', 'acao_id', 'status', 'protocolo_externo_id']);
 
     var { data_inicio_criacao, data_fim_criacao } = request.only(['data_inicio_criacao', 'data_fim_criacao']);
     var { data_inicio_execucao, data_fim_execucao } = request.only(['data_inicio_execucao', 'data_fim_execucao']);
@@ -68,8 +68,21 @@ class SolicitacaoController {
       }
     }
 
-    if (acao_servico_id) {
+    if (acao_servico_id && acao_servico_id > 0) {
       query.where({ acao_servico_id })
+    } else {
+      if (servico_id && servico_id > 0) {
+        if (acao_id && acao_id > 0) {
+          query.whereIn('acao_servico_id', Database.from('common.acoes_servicos').select('id').where({ servico_id }).where({ acao_id }))
+        } else {
+          query.where({ servico_id })
+        }
+      } else {
+        if (acao_id && acao_id > 0) {
+          query.whereIn('acao_servico_id', Database.from('common.acoes_servicos').select('id').where({ acao_id }))
+        }
+      }
+
     }
 
     if (status) {
