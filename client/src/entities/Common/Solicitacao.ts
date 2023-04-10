@@ -1,6 +1,6 @@
 import { User } from "../Security";
 
-import { ClienteSolicitacao, AcaoServicoSolicitacao, Servico } from "../Common";
+import { ClienteSolicitacao, AcaoServicoSolicitacao, Servico } from "../Common"; 
 
 type Solicitacao = {
     id: number,

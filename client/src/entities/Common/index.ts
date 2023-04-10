@@ -5,6 +5,7 @@ export type { default as AcaoServicoSolicitacao } from './AcaoServicoSolicitacao
 export type { default as Solicitacao } from './Solicitacao'
 export type { default as Servico } from './Servico'
 export type { default as LogIntegracao } from './LogIntegracao'
+export type { default as LogEvento } from './LogEvento'
 
 //validar para apagar
 export type { default as Telefone } from './Telefone'

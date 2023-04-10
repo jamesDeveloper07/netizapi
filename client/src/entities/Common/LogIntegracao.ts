@@ -1,6 +1,6 @@
 import { User } from "../Security";
-import { Servico } from "../Common";
-import { AcaoServicoSolicitacao } from "../Common";
+import { Servico, AcaoServicoSolicitacao, LogEvento } from "../Common";
+
 
 
 type LogIntegracao = {
@@ -35,6 +35,8 @@ type LogIntegracao = {
 
     user_id: number,
     user?: User,
+
+    logEvento?: LogEvento,
 
     created_at: Date,
     updated_at: Date,
