@@ -48,7 +48,8 @@ class LogIntegracaoController {
       .with('servico')
       .with('acaoServico.acao')
       .with('acaoServico.servico')
-      .orderBy('created_at', 'desc')
+      // .orderBy('created_at', 'desc')
+      .orderByRaw('order by created_at desc, id desc')
 
     if (id) {
       query.where({ id })
