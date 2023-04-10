@@ -46,7 +46,7 @@ const FilterLogs: React.FC<Props> = ({ title, notify, load, ...props }) => {
     const [cliente, setCliente] = usePersistedState('clienteLogs', null)
     const [pesquisarTelefoneCliente, setPesquisarTelefoneCliente] = usePersistedState('pesquisarTelefoneClienteLogs', false)
 
-    const [protocoloExterno, setProtocoloExterno] = usePersistedState('protocoloExternoLogs', null)
+    const [contrato, setContrato] = usePersistedState('contratoLogs', null)
 
     const [status, setStatus] = usePersistedState('statusLogs', null)
 
@@ -86,15 +86,15 @@ const FilterLogs: React.FC<Props> = ({ title, notify, load, ...props }) => {
     function search() {
         load({
 
-            data_inicio_criacao: dataInicialEventoLogs,
-            data_fim_criacao: dataFinalEventoLogs,
+            data_inicio_evento: dataInicialEventoLogs,
+            data_fim_evento: dataFinalEventoLogs,
 
             data_inicio_execucao: dataInicialExecucaoLogs,
             data_fim_execucao: dataFinalExecucaoLogs,
 
             cliente,
             pesquisarTelefoneCliente,
-            protocolo_externo_id: protocoloExterno,
+            contract_id: contrato,
             status,
         })
     }
@@ -107,7 +107,7 @@ const FilterLogs: React.FC<Props> = ({ title, notify, load, ...props }) => {
         setDataInicialExecucaoLogs(getDataHoje())
         setDataFinalExecucaoLogs(getDataHoje())
 
-        setProtocoloExterno('')
+        setContrato('')
 
         setCliente('')
         setPesquisarTelefoneCliente(false)
@@ -266,7 +266,7 @@ const FilterLogs: React.FC<Props> = ({ title, notify, load, ...props }) => {
                                 <label
                                     className="form-control-label"
                                 >
-                                    Período Execução
+                                    Período Integração
                                 </label>
                             </legend>
                             <Row>
@@ -398,13 +398,13 @@ const FilterLogs: React.FC<Props> = ({ title, notify, load, ...props }) => {
                             <label
                                 className="form-control-label"
                             >
-                                Protocolo Externo
+                                Contrato
                             </label>
                             <Input
                                 placeholder='Protocolo...'
                                 className="form-control"
-                                value={protocoloExterno}
-                                onChange={e => setProtocoloExterno(e.target.value)}
+                                value={contrato}
+                                onChange={e => setContrato(e.target.value)}
                             />
                         </FormGroup>
                     </Col>
