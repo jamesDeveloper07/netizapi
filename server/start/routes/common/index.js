@@ -57,8 +57,10 @@ Route.group(() => {
   Route.get('/executarSolicitacoesPendentes', 'Common/SolicitacaoController.executarSolicitacoesPendentes').middleware(['auth:jwt']);
   Route.get('/findClienteErpByDocumento/:documento', 'Common/SolicitacaoController.findClienteErpByDocumento').middleware(['auth:jwt']);
 
-
   //LogIntegracao
   Route.get('/log_integracao', 'Common/LogIntegracaoController.index').middleware(['auth:jwt']);
+
+  //LogEvento
+  Route.get('/log_evento', 'Common/LogEventoController.index').middleware(['auth:jwt']);
 
 }).prefix('/api/common');

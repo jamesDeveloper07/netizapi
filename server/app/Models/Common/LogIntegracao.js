@@ -20,6 +20,10 @@ class LogIntegracao extends Model {
     return this.belongsTo('App/Models/Security/User')
   }
 
+  logEvento() {
+    return this.belongsTo('App/Models/Common/LogEvento')
+  }
+
 }
 
 module.exports = LogIntegracao

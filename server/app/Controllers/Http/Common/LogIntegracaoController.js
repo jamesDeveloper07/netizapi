@@ -45,10 +45,10 @@ class LogIntegracaoController {
 
     const query = LogIntegracao.query()
       .with('user')
+      .with('logEvento')
       .with('servico')
       .with('acaoServico.acao')
       .with('acaoServico.servico')
-      // .orderBy('created_at', 'desc')
       .orderByRaw('created_at desc, id desc')
 
     if (id) {
@@ -116,35 +116,6 @@ class LogIntegracaoController {
     if (protocolo_externo_id) {
       query.where({ protocolo_externo_id })
     }
-
-    // const colaboradores = request.only('colaboradores')
-    // const equipes = request.only('equipes')
-
-    // //Se o usuário não tiver permissão de ver as oportunidades de outros
-    // let permissionsExpression = '(ver-todas-solicitacoes)'
-    // let validPermissions = await RoleAndPermission.validarPermissions(user.id, empresa_id, permissionsExpression)
-    // console.log("validar permissão");
-    // console.log(validPermissions);
-
-    // if (!validPermissions) {
-    //   query.where({ user_id: user.id })
-    // } else {
-    //   //se não houve filtro de colaboradores
-    //   console.log({ colaboradores })
-    //   if (!colaboradores || !colaboradores.colaboradores || colaboradores.colaboradores.length == 0 || colaboradores.colaboradores[0] == -1) {
-    //     //e se não houve filtro de equipes
-    //     if (!equipes || !equipes.equipes || equipes.equipes.length == 0 || equipes.equipes[0] == -1) {
-    //       //VALIDAR RESTRIÇÕES
-    //       //Restringir a somentes colaboradores que não façam parte das equipes restritas ao usuário.
-    //       //Colaborador Responsável
-    //       // query.whereRaw(` marketing.oportunidades.user_id NOT IN (SELECT user_id FROM common.membros_equipes WHERE equipe_id IN (SELECT equipe_id FROM security.restricoes_equipes where user_id = ${user.id} and tipo like 'restricao'))`)
-    //       //Colaborador Criador
-    //       // query.whereRaw(` marketing.oportunidades.criador_id NOT IN (SELECT user_id FROM common.membros_equipes WHERE equipe_id IN (SELECT equipe_id FROM security.restricoes_equipes where user_id = ${user.id} and tipo like 'restricao'))`)
-    //     }
-    //   } else {
-    //     query.whereRaw(`user_id IN (${colaboradores.colaboradores.join()})`)
-    //   }
-    // }
 
     const result = await query.paginate(page ? page : 1, limit ? limit : 10)
     return result

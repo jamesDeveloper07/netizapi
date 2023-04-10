@@ -8,6 +8,11 @@ class LogEvento extends Model {
     return 'common.log_evento'
   }
 
+  logsIntegracao() {
+    return this.hasMany('App/Models/Common/LogIntegracao')
+  }
+
+
 }
 
 module.exports = LogEvento
