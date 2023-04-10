@@ -61,7 +61,7 @@ class LogIntegracaoController {
       if (cliente) {
         if ((pesquisarTelefoneCliente && pesquisarTelefoneCliente === 'true')) {
           var tel = cliente.replace(/[^0-9]/g, '');
-          query.whereRaw(`common.log_integracao.telefone_cliente like '%${tel}%'`)
+          query.whereRaw(`NULLIF(regexp_replace(common.log_integracao.telefone_cliente, '[^\\.\\d]','','g'), '') like '%${tel}%'`)
         } else {
           var doc = cliente.replace(/[^0-9]/g, '');
           query.whereRaw(`common.log_integracao.nome_cliente ilike '%${cliente}%' ${doc ? `or common.log_integracao.documento_cliente like '%${doc}%'` : ''} `)

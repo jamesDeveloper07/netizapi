@@ -26,9 +26,10 @@ class LogEventoController {
       response.status(400).send('Empresa não informada')
     }
 
-    const { id, cliente_id } = request.only(['id', 'cliente_id']);
+    const { id, cliente_id, contract_id } = request.only(['id', 'cliente_id', 'contract_id']);
 
     var { data_inicio_evento, data_fim_evento } = request.only(['data_inicio_evento', 'data_fim_evento']);
+    var { data_inicio_execucao, data_fim_execucao } = request.only(['data_inicio_execucao', 'data_fim_execucao']);
 
     const { cliente, pesquisarTelefoneCliente } = request.only(['cliente', 'pesquisarTelefoneCliente']);
 
@@ -56,10 +57,10 @@ class LogEventoController {
       if (cliente) {
         if ((pesquisarTelefoneCliente && pesquisarTelefoneCliente === 'true')) {
           var tel = cliente.replace(/[^0-9]/g, '');
-          query.whereRaw(`common.log_evento.phone like '%${tel}%'`)
+          query.whereRaw(`NULLIF(regexp_replace(common.log_evento.phone, '[^\\.\\d]','','g'), '') like '%${tel}%'`)
         } else {
           var doc = cliente.replace(/[^0-9]/g, '');
-          query.whereRaw(`common.log_evento.name ilike '%${cliente}%' ${doc ? `or common.name.tx_id like '%${doc}%'` : ''} `)
+          query.whereRaw(`common.log_evento.name ilike '%${cliente}%' ${doc ? `or common.log_evento.tx_id like '%${doc}%'` : ''} `)
         }
       }
     }
@@ -75,9 +76,20 @@ class LogEventoController {
       }
     }
 
-    // if (protocolo_externo_id) {
-    //   query.where({ protocolo_externo_id })
-    // }
+    if (data_inicio_execucao && data_fim_execucao) {
+      query.whereRaw(`date(created_at AT TIME ZONE 'BRA') BETWEEN date('${data_inicio_execucao}' AT TIME ZONE 'BRA') AND date('${data_fim_execucao}' AT TIME ZONE 'BRA')`);
+    } else {
+      if (data_inicio_execucao) {
+        query.whereRaw(`date(created_at AT TIME ZONE 'BRA') >= date('${data_inicio_execucao}')`)
+      }
+      if (data_fim_execucao) {
+        query.whereRaw(`date(created_at AT TIME ZONE 'BRA') <= date('${data_fim_execucao}')`)
+      }
+    }
+
+    if (contract_id) {
+      query.where({ contract_id })
+    }
 
     const result = await query.paginate(page ? page : 1, limit ? limit : 10)
     return result
