@@ -31,6 +31,8 @@ class EventRepository {
         }
       }
 
+      const lastEventId = paramLastEventId.valor;
+
       const selectContractByEvents = await Database
         .connection('pgvoalle')
         .raw(`
@@ -39,23 +41,23 @@ class EventRepository {
           ,(select contract_event_type_id from erp.contract_events where id = event_id) as event_type_id
           ,(select description from erp.contract_events where id = event_id) as event_descricao
           ,(select date from erp.contract_events where id = event_id) as event_data
-          ,itens::text, service_products::text
+          ,itens::text, service_products::text, origin_item_id
           ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint]) ) as isServicoDigital
 
           ,(service_products is not null and service_products @> ARRAY[698::bigint]) as isDeezer
-          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.deleted is FALSE limit 1) as deezer_item_id
+          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.origin_contract_item_id = origin_item_id and sva.deleted is FALSE limit 1) as deezer_item_id
 
           ,(service_products is not null and service_products @> ARRAY[699::bigint]) as isWatch
-          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 699 and sva.deleted is FALSE limit 1) as watch_item_id
+          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 699 and sva.origin_contract_item_id = origin_item_id and sva.deleted is FALSE limit 1) as watch_item_id
 
           ,(service_products is not null and service_products @> ARRAY[700::bigint]) as isHBO
-          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 700 and sva.deleted is FALSE limit 1) as hbo_item_id
+          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 700 and sva.origin_contract_item_id = origin_item_id and sva.deleted is FALSE limit 1) as hbo_item_id
 
           from (
           SELECT cont.id as contract_id
           ,cont.client_id, cli.name, cli.tx_id, cli.type_tx_id, cli.cell_phone_1 as phone, cli.email
           , cont.stage, cont.v_stage, cont.status, cont.v_status, cont.deleted
-          , (select max(id) from erp.contract_events where contract_id = cont.id and date < now() and id > ${paramLastEventId.valor}  --and deleted is false
+          , (select max(id) from erp.contract_events where contract_id = cont.id and date < now() and id > ${lastEventId}  --and deleted is false
                and contract_event_type_id in (
             3,  145,  117, 118 --Aprovação
             ,24, 110, 144, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 174, 175 --Cancelamento
@@ -69,6 +71,7 @@ class EventRepository {
             ) as event_id
           ,array_agg(distinct(item.id)) as itens
           ,array_agg(distinct(item.service_product_id)) as service_products
+          ,item.origin_contract_item_id as origin_item_id
 
           FROM erp.contracts cont
           left join erp.people cli on (cont.client_id = cli.id)
@@ -77,7 +80,7 @@ class EventRepository {
           where cont.id in
           (
             SELECT contract_id FROM erp.contract_events
-            where date < now() and id > ${paramLastEventId.valor} --and deleted is false
+            where date < now() and id > ${lastEventId} --and deleted is false
             and contract_event_type_id in (
             3,  145,  117, 118 --Aprovação
             ,24, 110, 144, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 174, 175 --Cancelamento
@@ -92,18 +95,17 @@ class EventRepository {
 
           and type_tx_id = 2 --pessoa física
           and stage = 3 --aprovado
-          GROUP BY cont.id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
+          GROUP BY cont.id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id, item.origin_contract_item_id
           order by cont.id
           ) as contratos ) as contratos_validados
 
           order by event_id asc
           limit 1000`);
 
-
       // const selectContractByEvents = await Database
       //   .connection('pg')
       //   .raw(`SELECT contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status, deleted, event_id, event_type_id, event_descricao, event_data, itens, service_products, isservicodigital, isdeezer, deezer_item_id, iswatch, watch_item_id, ishbo, hbo_item_id
-      //   FROM public.select_events where TRUE and event_id > ${paramLastEventId.valor}
+      //   FROM public.select_events where TRUE and event_id > ${lastEventId}
       //   --FROM public.select_events where TRUE and event_id > ${823018}
       //   order by event_id asc limit 1000`);
 
@@ -132,26 +134,23 @@ class EventRepository {
         console.log('===== EVENTO ANTERIOR =====')
         console.log(logEventoAnterior ? logEventoAnterior.$attributes : logEventoAnterior)
 
+        console.log('===== CADASTRAR LOG EVENTO ATUAL =====\n')
+        var newLogEvent = await LogEvento.create(eventoAtual)
+        const id = newLogEvent.id
+        newLogEvent = await LogEvento.query()
+          .where({ id })
+          .first()
+
+        newLogEvent = newLogEvent.$attributes;
+
         if (!logEventoAnterior) {
-          console.log('===== CADASTRAR LOG EVENTO ATUAL =====\n')
-          var newLogEvent = await LogEvento.create(eventoAtual)
-          const id = newLogEvent.id
-          newLogEvent = await LogEvento.query()
-            .where({ id })
-            .first()
-
-          newLogEvent = newLogEvent.$attributes;
-
-          await this.executarIntegracaoEvento(newLogEvent);
-
+          await this.executarIntegracaoEvento(newLogEvent, lastEventId);
         } else {
           console.log('===== ANALISAR MUDANÇAS NO LOG EVENTO ATUAL E ANTERIOR =====')
           var eventoAnterior = logEventoAnterior.$attributes;
-          eventoAtual
           console.log({ eventoAtual })
           console.log({ eventoAnterior })
-
-          await this.analisarMudancasNosEventos(eventoAtual, eventoAnterior);
+          await this.analisarMudancasNosEventos(newLogEvent, eventoAnterior, lastEventId);
         }
 
         console.log('===FIM=======================================\n')
@@ -176,42 +175,20 @@ class EventRepository {
     }
   }
 
-  async analisarMudancasNosEventos(eventoAtual, eventoAnterior) {
+  async analisarMudancasNosEventos(eventoAtual, eventoAnterior, lastEventId) {
 
     console.log('===== ANALISANDO MUDANÇAS =====\n')
 
     if (this.isCancelamento(eventoAtual.event_type_id) || this.isSuspensao(eventoAtual.event_type_id) || this.isBloqueio(eventoAtual.event_type_id)) {
 
-      console.log('===== CADASTRAR LOG EVENTO ATUAL APÓS A ANALISE (CANCELAMENTO | SUSPENSAO | BLOQUEIO) e FORCAR CANCELAMENTO =====\n')
-      var newLogEvent = await LogEvento.create(eventoAtual)
-      const id = newLogEvent.id
-      newLogEvent = await LogEvento.query()
-        .where({ id })
-        .first()
-
-      console.log('===== LOG EVENTO ATUAL CADASTRADO  =====\n')
-
-      newLogEvent = newLogEvent.$attributes;
-
-      await this.forcarCancelamentoSVAS(newLogEvent);
+      await this.forcarCancelamentoSVAS(eventoAtual);
 
     } else {
       if (this.isDesbloqueio(eventoAtual.event_type_id) || this.isAlteracaoSituacao(eventoAtual.event_type_id)) {
 
-        console.log('===== CADASTRAR LOG EVENTO ATUAL APÓS A ANALISE (DESBLOQUEIO | ALTERACAO SITUACAO), FORCAR CANCELAMENTO e REATIVAR =====\n')
-        var newLogEvent = await LogEvento.create(eventoAtual)
-        const id = newLogEvent.id
-        newLogEvent = await LogEvento.query()
-          .where({ id })
-          .first()
+        await this.forcarCancelamentoSVAS(eventoAtual);
 
-        console.log('===== LOG EVENTO ATUAL CADASTRADO  =====\n')
-        newLogEvent = newLogEvent.$attributes;
-
-        await this.forcarCancelamentoSVAS(newLogEvent);
-
-
-        if (newLogEvent.isservicodigital) {
+        if (eventoAtual.isservicodigital) {
 
           var SVAsOK = '';
           var separadorOk = '';
@@ -219,34 +196,89 @@ class EventRepository {
           var SVAsError = '';
           var separadorError = '';
 
-          if (newLogEvent.isdeezer) {
-            await this.ativarDeezer(newLogEvent, SVAsOK, separadorOk, SVAsError, separadorError);
+          if (eventoAtual.isdeezer) {
+            await this.ativarDeezer(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
           }
 
-          if (newLogEvent.iswatch) {
-            await this.ativarWatch(newLogEvent, SVAsOK, separadorOk, SVAsError, separadorError);
+          if (eventoAtual.iswatch) {
+            await this.ativarWatch(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
           }
 
-          if (newLogEvent.ishbo) {
-            await this.ativarHBO(newLogEvent, SVAsOK, separadorOk, SVAsError, separadorError);
+          if (eventoAtual.ishbo) {
+            await this.ativarHBO(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
           }
 
-          console.log(`Executado Desbloqueio para ${newLogEvent.name} - Assinaturas (${SVAsOK})`)
+          console.log(`Executado Desbloqueio para ${eventoAtual.name} - Assinaturas (${SVAsOK})`)
 
         }
 
       } else {
-        if (this.isInclusaoAlteracaoOuExclusaoDeServico(eventoAtual.event_type_id)) {
-          console.log(`IMPLANTAR INCLUSÃO, ALTERAÇÂO OU EXCLUSÃO DE SERVIÇOS`)
+        if (this.isInclusaoOuExclusaoDeServico(eventoAtual.event_type_id)) {
+
+          await this.forcarCancelamentoSVAS(eventoAtual);
+
+          if (eventoAtual.isservicodigital) {
+
+            var SVAsOK = '';
+            var separadorOk = '';
+
+            var SVAsError = '';
+            var separadorError = '';
+
+            if (eventoAtual.isdeezer) {
+              await this.ativarDeezer(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
+            }
+
+            if (eventoAtual.iswatch) {
+              await this.ativarWatch(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
+            }
+
+            if (eventoAtual.ishbo) {
+              await this.ativarHBO(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
+            }
+
+            console.log(`Executado Inclusão ou Exclusão de Serviço para ${eventoAtual.name} - Assinaturas (${SVAsOK})`)
+
+          }
         } else {
-          console.log(`TIPO DE EVENTO NÃO PREVISTO: ID ${eventoAtual.event_type_id}`)
+          if (this.isAlteracaoDeServico(eventoAtual.event_type_id)) {
+            // const eventContractOld = await this.getServicoAnterior(eventoAtual.contract_id, lastEventId);
+            // await this.forcarCancelamentoSVAS(eventContractOld);
+            await this.forcarCancelamentoSVAS(eventoAtual);
+
+            if (eventoAtual.isservicodigital) {
+
+              var SVAsOK = '';
+              var separadorOk = '';
+
+              var SVAsError = '';
+              var separadorError = '';
+
+              if (eventoAtual.isdeezer) {
+                await this.ativarDeezer(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
+              }
+
+              if (eventoAtual.iswatch) {
+                await this.ativarWatch(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
+              }
+
+              if (eventoAtual.ishbo) {
+                await this.ativarHBO(eventoAtual, SVAsOK, separadorOk, SVAsError, separadorError);
+              }
+
+              console.log(`Executado Alteração de Serviço para ${eventoAtual.name} - Assinaturas (${SVAsOK})`)
+
+            }
+          } else {
+            console.log(`TIPO DE EVENTO NÃO PREVISTO: ID ${eventoAtual.event_type_id}`)
+          }
         }
       }
 
     }
   }
 
-  async executarIntegracaoEvento(event) {
+  async executarIntegracaoEvento(event, lastEventId) {
 
     if (this.isAprocavao(event.event_type_id)) {
       if (event.isservicodigital) {
@@ -329,15 +361,70 @@ class EventRepository {
           }
 
         } else {
-          if (this.isInclusaoAlteracaoOuExclusaoDeServico(event.event_type_id)) {
-            console.log(`IMPLANTAR INCLUSÃO, ALTERAÇÂO OU EXCLUSÃO DE SERVIÇOS`)
+          if (this.isInclusaoOuExclusaoDeServico(event.event_type_id)) {
+            await this.forcarCancelamentoSVAS(event);
+
+            if (event.isservicodigital) {
+
+              var SVAsOK = '';
+              var separadorOk = '';
+
+              var SVAsError = '';
+              var separadorError = '';
+
+              if (event.isdeezer) {
+                await this.ativarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError);
+              }
+
+              if (event.iswatch) {
+                await this.ativarWatch(event, SVAsOK, separadorOk, SVAsError, separadorError);
+              }
+
+              if (event.ishbo) {
+                await this.ativarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
+              }
+
+              console.log(`Executado Inclusão ou Exclusão de Serviço para ${event.name} - Assinaturas (${SVAsOK})`)
+
+            }
           } else {
-            console.log(`TIPO DE EVENTO NÃO PREVISTO: ID ${event.event_type_id}`)
+            if (this.isAlteracaoDeServico(event.event_type_id)) {
+
+              // const eventContractOld = await this.getServicoAnterior(event.contract_id, lastEventId);
+              // await this.forcarCancelamentoSVAS(eventContractOld);
+
+              await this.forcarCancelamentoSVAS(event);
+
+              if (event.isservicodigital) {
+
+                var SVAsOK = '';
+                var separadorOk = '';
+
+                var SVAsError = '';
+                var separadorError = '';
+
+                if (event.isdeezer) {
+                  await this.ativarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError);
+                }
+
+                if (event.iswatch) {
+                  await this.ativarWatch(event, SVAsOK, separadorOk, SVAsError, separadorError);
+                }
+
+                if (event.ishbo) {
+                  await this.ativarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
+                }
+
+                // console.log(`Criar assinatura (${SVAsOK}) para ${event.name}`)
+                console.log(`Executada Alteração de Serviço para ${event.name} - Assinaturas (${SVAsOK})`)
+
+              }
+            } else {
+              console.log(`TIPO DE EVENTO NÃO PREVISTO: ID ${event.event_type_id}`)
+            }
           }
         }
-
       }
-
     }
   }
 
@@ -402,8 +489,19 @@ class EventRepository {
   }
 
 
-  isInclusaoAlteracaoOuExclusaoDeServico(event_type_id) {
-    const idsTipo = [27, 133, 28]
+  isInclusaoOuExclusaoDeServico(event_type_id) {
+    // const idsTipo = [27, 133, 28]
+    const idsTipo = [27, 28]
+    for (var i = 0; i < idsTipo.length; i++) {
+      if (idsTipo[i] == event_type_id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  isAlteracaoDeServico(event_type_id) {
+    const idsTipo = [133]
     for (var i = 0; i < idsTipo.length; i++) {
       if (idsTipo[i] == event_type_id) {
         return true;
@@ -576,7 +674,7 @@ class EventRepository {
 
     if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
 
-      var successWatch = await this.inserirTicketWatch(event, servico, acaoServico, event.watch_item_id);
+      var successWatch = await this.inserirTicketWatch(event, servico, acaoServico);
 
       if (successWatch) {
         SVAsOK += separadorOk + 'Watch Brasil'
@@ -605,7 +703,7 @@ class EventRepository {
       .first()
 
     if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
-      var successWatch = await this.deletarTicketWatch(event, servico, acaoServico, event.watch_item_id);
+      var successWatch = await this.deletarTicketWatch(event, servico, acaoServico);
 
       if (successWatch) {
         SVAsOK += separadorOk + 'Watch Brasil'
@@ -634,7 +732,7 @@ class EventRepository {
       .first()
 
     if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
-      var successHBO = await this.inserirTicketWatch(event, servico, acaoServico, event.hbo_item_id);
+      var successHBO = await this.inserirTicketWatch(event, servico, acaoServico);
 
       if (successHBO) {
         SVAsOK += separadorOk + 'HBO Max'
@@ -662,7 +760,7 @@ class EventRepository {
       .first()
 
     if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
-      var successHBO = await this.deletarTicketWatch(event, servico, acaoServico, event.hbo_item_id);
+      var successHBO = await this.deletarTicketWatch(event, servico, acaoServico);
 
       if (successHBO) {
         SVAsOK += separadorOk + 'HBO Max'
@@ -677,7 +775,7 @@ class EventRepository {
   }
 
 
-  async inserirTicketWatch(event, servico, acaoServico, sva_item_id) {
+  async inserirTicketWatch(event, servico, acaoServico) {
     try {
 
       const pPacote = parseInt(servico.integracao_id);
@@ -711,7 +809,7 @@ class EventRepository {
         separador = '&'
       }
 
-      url += separador + 'pAssinanteIDIntegracao=' + sva_item_id;
+      url += separador + 'pAssinanteIDIntegracao=' + event.contract_id;
 
       const newLogIntegracao = {
         nome_cliente: pName,
@@ -720,7 +818,7 @@ class EventRepository {
         telefone_cliente: pPhone.replace(/[^0-9]/g, ''),
         cliente_erp_id: event.client_id,
         pacote_id: pPacote,
-        assinante_id_integracao: sva_item_id,
+        assinante_id_integracao: event.contract_id,
         protocolo_externo_id,
         user_id: 1,
         servico_id: servico.id,
@@ -801,7 +899,7 @@ class EventRepository {
   }
 
 
-  async deletarTicketWatch(event, servico, acaoServico, sva_item_id) {
+  async deletarTicketWatch(event, servico, acaoServico) {
     try {
       //const { pPacote, pTicket, pEmail, IDIntegracaoAssinante, pStatus } = request.only(['pPacote', 'pTicket', 'pEmail', 'IDIntegracaoAssinante', 'pStatus'])
       //const { protocolo_externo_id } = request.only(['protocolo_externo_id'])
@@ -822,7 +920,8 @@ class EventRepository {
       var ticket;
 
       if (pPacote) {
-        ticket = await this.getTicket(pPacote, pEmail, sva_item_id);
+        // ticket = await this.getTicket(pPacote, pEmail, event.contract_id);
+        ticket = await this.getTicket(pPacote, null, event.contract_id);
       }
 
       const newLogIntegracao = {
@@ -832,7 +931,7 @@ class EventRepository {
         telefone_cliente: pPhone ? pPhone.replace(/[^0-9]/g, '') : null,
         cliente_erp_id: event.client_id,
         pacote_id: pPacote,
-        // assinante_id_integracao: watch_item_id,
+        // assinante_id_integracao: event.contract_id,
         protocolo_externo_id,
         user_id: 1,
         servico_id: servico.id,
@@ -939,19 +1038,98 @@ class EventRepository {
     var SVAsError = '';
     var separadorError = '';
 
-    if (event.isdeezer) {
-      await this.cancelarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError);
-    }
+    // if (event.isdeezer) {
+    //   await this.cancelarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    // }
 
-    if (event.iswatch) {
-      await this.cancelarWatch(event, SVAsOK, separadorOk, SVAsError, separadorError);
-    }
+    // if (event.iswatch) {
+    //   await this.cancelarWatch(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    // }
 
-    if (event.ishbo) {
-      await this.cancelarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
-    }
+    // if (event.ishbo) {
+    //   await this.cancelarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    // }
+
+    await this.cancelarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    await this.cancelarWatch(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    await this.cancelarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
 
     console.log(`Remover assinatura (${SVAsOK}) para ${event.name}`)
+  }
+
+  //-----------------------
+
+  async getServicoAnterior(contract_id, lastEventId) {
+
+    if (contract_id && lastEventId) {
+
+      const selectContractWithOldServiceProduct = await Database
+        .connection('pgvoalle')
+        .raw(
+          `Select * FROM (
+            Select contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status, deleted, event_id
+            ,(select contract_event_type_id from erp.contract_events where id = event_id) as event_type_id
+            ,(select description from erp.contract_events where id = event_id) as event_descricao
+            ,(select date from erp.contract_events where id = event_id) as event_data
+            ,itens::text, service_products::text, origin_item_id
+            ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint]) ) as isServicoDigital
+
+            ,(service_products is not null and service_products @> ARRAY[698::bigint]) as isDeezer
+            ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.origin_contract_item_id = origin_item_id limit 1) as deezer_item_id
+
+            ,(service_products is not null and service_products @> ARRAY[699::bigint]) as isWatch
+            ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 699 and sva.origin_contract_item_id = origin_item_id limit 1) as watch_item_id
+
+            ,(service_products is not null and service_products @> ARRAY[700::bigint]) as isHBO
+            ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 700 and sva.origin_contract_item_id = origin_item_id limit 1) as hbo_item_id
+
+            from (
+            SELECT cont.id as contract_id
+            ,cont.client_id, cli.name, cli.tx_id, cli.type_tx_id, cli.cell_phone_1 as phone, cli.email
+            , cont.stage, cont.v_stage, cont.status, cont.v_status, cont.deleted
+            , (select max(id) from erp.contract_events where contract_id = cont.id and date < now() and deleted is false and id > ${lastEventId}
+                 and contract_event_type_id in (
+              3,  145,  117, 118, --Aprovação
+              24, 110, 144, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 174, 175, --Cancelamento
+              43, 151, --Suspensão
+              40, 81, --Bloqueio
+              41, 106, --Desbloqueio/Reativação
+              10, --Alteração de Situação
+              27, 133, 28 --Inclusao, Alteração e Exclusão de Servicos
+              )
+              ) as event_id
+            ,array_agg(distinct(item.id)) as itens
+            ,array_agg(distinct(item.service_product_id)) as service_products
+            ,item.origin_contract_item_id as origin_item_id
+
+            FROM erp.contracts cont
+            left join erp.people cli on (cont.client_id = cli.id)
+            left join erp.contract_items item on (item.contract_id = cont.id and item.id = (select max(id) from erp.contract_items where contract_id = 3777 and is_composition and id not in (select id from erp.contract_items where contract_id = cont.id and is_composition and not deleted) ) )
+
+            where true
+            and cont.id = ${contract_id}
+            GROUP BY cont.id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id, item.origin_contract_item_id
+            ) as contratos ) as contrato_with_old_service`);
+
+      // const selectContractWithOldServiceProduct = await Database
+      //   .connection('pg')
+      //   .raw(`SELECT contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status, deleted, event_id, event_type_id, event_descricao, event_data, itens, service_products, isservicodigital, isdeezer, deezer_item_id, iswatch, watch_item_id, ishbo, hbo_item_id
+      //   FROM public.select_events where TRUE and event_id = ${lastEventId}
+      //   order by event_id asc limit 1`);
+
+      // later close the connection
+      Database.close(['pg']);
+
+      const contractsWithOldService = selectContractWithOldServiceProduct.rows
+
+      if (contractsWithOldService && contractsWithOldService.length > 0) {
+        const contractOld = contractsWithOldService[0];
+        return contractOld;
+      }
+    }
+
+    return null;
+
   }
 
 
