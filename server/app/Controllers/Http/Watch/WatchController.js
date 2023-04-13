@@ -18,7 +18,6 @@ class WatchController {
       const paramToken = await Parametro.findBy({ chave: 'watch_access_token' });
 
       if (paramToken && paramToken.id && paramToken.id > 0) {
-        console.log(paramToken.updated_at)
         var dateValidade = moment(paramToken.updated_at).add(6, 'h').toDate();
         var isValido = dateValidade > new Date()
         if (isValido) {
@@ -66,8 +65,6 @@ class WatchController {
         return response.status(400).send({ menssage: 'uid não informada!' })
       }
 
-      console.log('\nSolicitando access-token by code ' + code + '\n');
-
       const clientId = await Parametro.findBy({ chave: 'watch_hml_client_id' });
       const clientSecret = await Parametro.findBy({ chave: 'watch_hml_client_secret' });
 
@@ -100,7 +97,7 @@ class WatchController {
 
         const paramToken = await Parametro.findBy({ chave: 'watch_hml_access_token' });
         const token = res.data.Result[0];
-        console.log({ token });
+        // console.log({ token });
 
         var msgResponse;
 
@@ -178,7 +175,7 @@ class WatchController {
         return response.status(400).send({ menssage: 'uid não informada!' })
       }
 
-      console.log('\n\nSolicitando access-token by code ' + code + '\n');
+      // console.log('\n\nSolicitando access-token by code ' + code + '\n');
 
       const clientId = await Parametro.findBy({ chave: 'watch_client_id' });
       const clientSecret = await Parametro.findBy({ chave: 'watch_client_secret' });
