@@ -45,13 +45,13 @@ class EventRepository {
           ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint]) ) as isServicoDigital
 
           ,(service_products is not null and service_products @> ARRAY[698::bigint]) as isDeezer
-          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.origin_contract_item_id = origin_item_id and sva.deleted is FALSE limit 1) as deezer_item_id
+          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.deleted is FALSE limit 1) as deezer_item_id
 
           ,(service_products is not null and service_products @> ARRAY[699::bigint]) as isWatch
-          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 699 and sva.origin_contract_item_id = origin_item_id and sva.deleted is FALSE limit 1) as watch_item_id
+          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 699 and sva.deleted is FALSE limit 1) as watch_item_id
 
           ,(service_products is not null and service_products @> ARRAY[700::bigint]) as isHBO
-          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 700 and sva.origin_contract_item_id = origin_item_id and sva.deleted is FALSE limit 1) as hbo_item_id
+          ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 700 and sva.deleted is FALSE limit 1) as hbo_item_id
 
           from (
           SELECT cont.id as contract_id
@@ -66,12 +66,11 @@ class EventRepository {
             ,41, 106 --Desbloqueio/Reativação
             ,10 --Alteração de Situação
             ,27, 133, 28 --Inclusao, Alteração e Exclusão de Servicos
-            --,8 --Alteração Titularidade
+            ,8 --Alteração Titularidade
             )
             ) as event_id
           ,array_agg(distinct(item.id)) as itens
           ,array_agg(distinct(item.service_product_id)) as service_products
-          ,item.origin_contract_item_id as origin_item_id
 
           FROM erp.contracts cont
           left join erp.people cli on (cont.client_id = cli.id)
@@ -89,13 +88,13 @@ class EventRepository {
             ,41, 106 --Desbloqueio/Reativação
             ,10 --Alteração de Situação
             ,27, 133, 28 --Inclusao, Alteração e Exclusão de Servicos
-            --,8 --Alteração Titularidade
+            ,8 --Alteração Titularidade
             )
           )
 
           and type_tx_id = 2 --pessoa física
           and stage = 3 --aprovado
-          GROUP BY cont.id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id, item.origin_contract_item_id
+          GROUP BY cont.id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
           order by cont.id
           ) as contratos ) as contratos_validados
 
