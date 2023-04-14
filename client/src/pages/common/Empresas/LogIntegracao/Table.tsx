@@ -48,7 +48,7 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
       text: 'Serviço',
     },
     {
-      dataField: "acaoServico.acao.nome",      
+      dataField: "acaoServico.acao.nome",
       text: 'Ação',
       formatter: (cell: any, row: any) => acaoServicoFormater(cell, row)
     },
@@ -67,7 +67,7 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
     {
       situacao: "status",
       text: 'Status',
-      formatter: (cell: any, row: any) => situacaoFormater(cell, row),
+      formatter: (cell: any, row: any) => statusFormater(cell, row),
       align: 'center',
       headerAlign: 'center',
     },
@@ -77,17 +77,13 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
 
 
   function getStatus(row: any) {
-    var status = 'Não identificado'
-
     if (row) {
-      if (row.data_fim_vigencia) {
-        status = 'Não Vigente'
-      } else {
-        status = 'Vigente'
+      if (row.status && row.status == 'falha' && row.status_detalhe && row.status_detalhe == 'Ticket não encontrado pela api watch') {
+        return 'executada'
       }
+      return row.status
     }
-
-    return status
+    return null;
   }
 
   function getColorStatus(row: any) {
@@ -100,7 +96,7 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
         if (row.status == 'cancelada') {
           color = 'warning'
         } else {
-          if (row.status == 'falha' || row.status == 'invalida') {
+          if ((row.status == 'falha' || row.status == 'invalida') && !(row.status_detalhe && row.status_detalhe == 'Ticket não encontrado pela api watch')) {
             color = 'danger'
           }
         }
@@ -162,7 +158,7 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
     </>
   )
 
-  const situacaoFormater = (cell: any, row: any) => (
+  const statusFormater = (cell: any, row: any) => (
     <>
       <Badge
         id={`denc-${row.id}`}
@@ -171,7 +167,7 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
         pill
         title={getStatusDetalhe(row)}
       >
-        {row.status}
+        {getStatus(row)}
       </Badge>
     </>
   )
