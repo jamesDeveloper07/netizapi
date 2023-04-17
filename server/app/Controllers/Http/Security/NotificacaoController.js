@@ -70,13 +70,13 @@ class NotificacaoController {
             const urlApi = 'https://fcm.googleapis.com/fcm/send';
 
             const select = await Database.raw(`SELECT notif.id, notuser.user_id, users.name as user_name, titulo, mensagem, acao_clique_url, icone_url, sub.icon_font,
-origem_id, notif.created_at, scheduled_to, sended_at, readed_at, notif.updated_at, submodulo_id, sub.nome as submodulo_nome, sub.modulo_id, mod.nome as modulo_nome 
-from security.notificacoes_users notuser 
-join security.notificacoes notif on (notif.id = notuser.notificacao_id) 
-join security.users as users on (users.id = notuser.user_id) 
-join security.submodulos sub on (notif.submodulo_id = sub.id) 
-join security.modulos  mod on (sub.modulo_id = mod.id) 
-where sended_at is null and mod.status like 'A' and sub.status like 'A' 
+origem_id, notif.created_at, scheduled_to, sended_at, readed_at, notif.updated_at, submodulo_id, sub.nome as submodulo_nome, sub.modulo_id, mod.nome as modulo_nome
+from security.notificacoes_users notuser
+join security.notificacoes notif on (notif.id = notuser.notificacao_id)
+join security.users as users on (users.id = notuser.user_id)
+join security.submodulos sub on (notif.submodulo_id = sub.id)
+join security.modulos  mod on (sub.modulo_id = mod.id)
+where sended_at is null and mod.status like 'A' and sub.status like 'A'
 and users.status is true and scheduled_to < now()`);
 
             const notificacoes = select.rows;
@@ -160,32 +160,32 @@ and users.status is true and scheduled_to < now()`);
         const notificacoes = await Database.raw(`
         select row_number() OVER () AS id, tarefas.*,
 
-        CASE 
+        CASE
             WHEN tipo_notificacao like 'oportunidade_criador' and count > 1
                 then 'Você criou ' || count || ' oportunidades agendadas para hoje.'
             WHEN tipo_notificacao like 'oportunidade_criador' and count = 1
                 then 'Você criou 1 oportunidade agendada para hoje.'
-                
+
             WHEN tipo_notificacao like 'oportunidade_responsavel' and count > 1
                 then 'Você é responsável por ' || count || ' oportunidades agendadas para hoje.'
             WHEN tipo_notificacao like 'oportunidade_responsavel' and count = 1
                 then 'Você é responsável por 1 oportunidade agendada para hoje.'
-                
+
             WHEN tipo_notificacao like 'acao_responsavel' and count > 1
                 then 'Você é responsável por ' || count || ' ações agendadas para hoje.'
             WHEN tipo_notificacao like 'acao_responsavel' and count = 1
                 then 'Você é responsável por 1 ação agendada para hoje.'
-                
-            WHEN tipo_notificacao like 'publicacao_criador' and count > 1 
+
+            WHEN tipo_notificacao like 'publicacao_criador' and count > 1
                 then 'Você criou ' || count || ' publicações agendadas para hoje.'
-            WHEN tipo_notificacao like 'publicacao_criador' and count = 1 
+            WHEN tipo_notificacao like 'publicacao_criador' and count = 1
                 then 'Você criou 1 publicação agendada para hoje.'
 
-            WHEN tipo_notificacao like 'publicacao_responsavel' and count > 1 
+            WHEN tipo_notificacao like 'publicacao_responsavel' and count > 1
                 then 'Você é responsável por ' || count || ' publicações agendadas para hoje.'
-            WHEN tipo_notificacao like 'publicacao_responsavel' and count = 1 
+            WHEN tipo_notificacao like 'publicacao_responsavel' and count = 1
                 then 'Você é responsável por 1 publicação agendada para hoje.'
-                
+
         END as descricao,
 
         menus.path, menus.icon
@@ -193,16 +193,16 @@ and users.status is true and scheduled_to < now()`);
         from (
 
         --oportunidade criador (agendadas para hoje)
-        select count(id), criador_id as user_id, 'oportunidade_criador' as tipo_notificacao, 'oportunidades' as menu_alias 
-        from marketing.oportunidades       
+        select count(id), criador_id as user_id, 'oportunidade_criador' as tipo_notificacao, 'oportunidades' as menu_alias
+        from marketing.oportunidades
         where criador_id = ${user.id}
         and data_agendamento between to_char(now(), 'YYYY-MM-DD 00:00:00')::timestamp and to_char(now(), 'YYYY-MM-DD 23:59:59')::timestamp
-        group by criador_id 
+        group by criador_id
 
         union all
 
         --oportunidade responsável (agendadas para hoje)
-        select count(id), user_id, 'oportunidade_responsavel' as tipo_notificacao, 'oportunidades' as menu_alias  
+        select count(id), user_id, 'oportunidade_responsavel' as tipo_notificacao, 'oportunidades' as menu_alias
         from marketing.oportunidades
         where user_id = ${user.id}
         and data_agendamento between to_char(now(), 'YYYY-MM-DD 00:00:00')::timestamp and to_char(now(), 'YYYY-MM-DD 23:59:59')::timestamp
@@ -211,7 +211,7 @@ and users.status is true and scheduled_to < now()`);
         union all
 
         --ações responsável
-        select count(acao.id), quem.user_id, 'acao_responsavel' as tipo_notificacao, 'pdcas' as menu_alias 
+        select count(acao.id), quem.user_id, 'acao_responsavel' as tipo_notificacao, 'pdcas' as menu_alias
         from mentoring.acoes acao
         inner join mentoring.users_quem quem on (quem.acao_id = acao.id)
         where quem.user_id = ${user.id}
@@ -221,7 +221,7 @@ and users.status is true and scheduled_to < now()`);
         union all
 
         --publicações criador
-        select count(id), user_id, 'publicacao_criador' as tipo_notificacao, 'publicacoes' as menu_alias 
+        select count(id), user_id, 'publicacao_criador' as tipo_notificacao, 'publicacoes' as menu_alias
         from marketing.publicacoes
         where user_id = ${user.id}
         and data_postagem between to_char(now(), 'YYYY-MM-DD 00:00:00')::timestamp and to_char(now(), 'YYYY-MM-DD 23:59:59')::timestamp
@@ -234,9 +234,9 @@ and users.status is true and scheduled_to < now()`);
         from marketing.publicacoes
         where designer_responsavel_id = ${user.id}
         and data_postagem between to_char(now(), 'YYYY-MM-DD 00:00:00')::timestamp and to_char(now(), 'YYYY-MM-DD 23:59:59')::timestamp
-        group by designer_responsavel_id 
+        group by designer_responsavel_id
         ) as tarefas
-        join security.menus as menus on tarefas.menu_alias like menus.alias 
+        join security.menus as menus on tarefas.menu_alias like menus.alias
         where count > 0`
         );
 
@@ -282,29 +282,29 @@ and users.status is true and scheduled_to < now()`);
         }
 
         const totalNaoLidas = await Database.raw(`select count(distinct(notif.id))
-        from security.notificacoes_users notuser 
-        join security.notificacoes notif on (notif.id = notuser.notificacao_id) 
-        join security.users as users on (users.id = notuser.user_id) 
-        join security.submodulos sub on (notif.submodulo_id = sub.id) 
-        join security.modulos  mod on (sub.modulo_id = mod.id) 
-        where sended_at is not null 
-        and user_id = ${user.id} 
-        and mod.status like 'A' 
-        and sub.status like 'A' 
+        from security.notificacoes_users notuser
+        join security.notificacoes notif on (notif.id = notuser.notificacao_id)
+        join security.users as users on (users.id = notuser.user_id)
+        join security.submodulos sub on (notif.submodulo_id = sub.id)
+        join security.modulos  mod on (sub.modulo_id = mod.id)
+        where sended_at is not null
+        and user_id = ${user.id}
+        and mod.status like 'A'
+        and sub.status like 'A'
         and users.status is true
         and readed_at is null`);
 
         const notificacoes = await Database.raw(`SELECT notif.id, notuser.user_id, users.name as user_name, titulo, mensagem, acao_clique_url, icone_url, sub.icon_font,
-        origem_id, notif.created_at, scheduled_to, sended_at, readed_at, notif.updated_at, submodulo_id, sub.nome as submodulo_nome, sub.modulo_id, mod.nome as modulo_nome 
-        from security.notificacoes_users notuser 
-        join security.notificacoes notif on (notif.id = notuser.notificacao_id) 
-        join security.users as users on (users.id = notuser.user_id) 
-        join security.submodulos sub on (notif.submodulo_id = sub.id) 
-        join security.modulos  mod on (sub.modulo_id = mod.id) 
-        where sended_at is not null 
-        and user_id = ${user.id} 
-        and mod.status like 'A' 
-        and sub.status like 'A' 
+        origem_id, notif.created_at, scheduled_to, sended_at, readed_at, notif.updated_at, submodulo_id, sub.nome as submodulo_nome, sub.modulo_id, mod.nome as modulo_nome
+        from security.notificacoes_users notuser
+        join security.notificacoes notif on (notif.id = notuser.notificacao_id)
+        join security.users as users on (users.id = notuser.user_id)
+        join security.submodulos sub on (notif.submodulo_id = sub.id)
+        join security.modulos  mod on (sub.modulo_id = mod.id)
+        where sended_at is not null
+        and user_id = ${user.id}
+        and mod.status like 'A'
+        and sub.status like 'A'
         and users.status is true
         ${sqlSituacao}
         order by sended_at desc
@@ -361,31 +361,31 @@ and users.status is true and scheduled_to < now()`);
             }
 
             let sqlTotal = `select count(distinct(notif.id))
-        from security.notificacoes_users notuser 
-        join security.notificacoes notif on (notif.id = notuser.notificacao_id) 
-        join security.users as users on (users.id = notuser.user_id) 
-        join security.submodulos sub on (notif.submodulo_id = sub.id) 
-        join security.modulos  mod on (sub.modulo_id = mod.id) 
-        where sended_at is not null 
-        and user_id = ${user.id} 
-        and mod.status like 'A' 
-        and sub.status like 'A' 
+        from security.notificacoes_users notuser
+        join security.notificacoes notif on (notif.id = notuser.notificacao_id)
+        join security.users as users on (users.id = notuser.user_id)
+        join security.submodulos sub on (notif.submodulo_id = sub.id)
+        join security.modulos  mod on (sub.modulo_id = mod.id)
+        where sended_at is not null
+        and user_id = ${user.id}
+        and mod.status like 'A'
+        and sub.status like 'A'
         and users.status is true
         ${sqlTitulo}
         ${sqlPeriodo}
         ${sqlSituacao}`
 
             const notificacoes = await Database.raw(`SELECT notif.id, notuser.user_id, users.name as user_name, titulo, mensagem, acao_clique_url, icone_url, sub.icon_font,
-        origem_id, notif.created_at, scheduled_to, sended_at, readed_at, notif.updated_at, submodulo_id, sub.nome as submodulo_nome, sub.modulo_id, mod.nome as modulo_nome 
-        from security.notificacoes_users notuser 
-        join security.notificacoes notif on (notif.id = notuser.notificacao_id) 
-        join security.users as users on (users.id = notuser.user_id) 
-        join security.submodulos sub on (notif.submodulo_id = sub.id) 
-        join security.modulos  mod on (sub.modulo_id = mod.id) 
-        where sended_at is not null 
-        and user_id = ${user.id} 
-        and mod.status like 'A' 
-        and sub.status like 'A' 
+        origem_id, notif.created_at, scheduled_to, sended_at, readed_at, notif.updated_at, submodulo_id, sub.nome as submodulo_nome, sub.modulo_id, mod.nome as modulo_nome
+        from security.notificacoes_users notuser
+        join security.notificacoes notif on (notif.id = notuser.notificacao_id)
+        join security.users as users on (users.id = notuser.user_id)
+        join security.submodulos sub on (notif.submodulo_id = sub.id)
+        join security.modulos  mod on (sub.modulo_id = mod.id)
+        where sended_at is not null
+        and user_id = ${user.id}
+        and mod.status like 'A'
+        and sub.status like 'A'
         and users.status is true
         ${sqlTitulo}
         ${sqlPeriodo}
