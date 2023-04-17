@@ -29,7 +29,7 @@ class ExecutarIntegracoes {
       Logger.info(`
       ### INICIANDO JOB EXECUTAR INTEGRAÇOES EM ${(new Date()).toLocaleString()} ###`)
 
-      const returnRepository = await EventRepository.getEvents();
+      const returnRepository = await EventRepository.executarIntegracoes();
 
       if (returnRepository && returnRepository.status) {
         if (returnRepository.status == 200) {
