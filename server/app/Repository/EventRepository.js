@@ -99,12 +99,15 @@ class EventRepository {
       .connection('pgvoalle')
       .raw(select);
 
+    // later close the connection
+    Database.close(['pgvoalle']);
+
     // const selectContractByEvents = await Database
     //   .connection('pg')
     //   .raw(select);
 
-    // later close the connection
-    Database.close(['pg']);
+    // // later close the connection
+    // Database.close(['pg']);
 
     const contractEvents = selectContractByEvents.rows
 
