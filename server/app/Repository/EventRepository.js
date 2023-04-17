@@ -92,9 +92,6 @@ class EventRepository {
     // ${where && where.length > 0 ? where : ''}
     // ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`;
 
-    console.log("\n\n======SELECT=============");
-    console.log({ select });
-
     const selectContractByEvents = await Database
       .connection('pgvoalle')
       .raw(select);
