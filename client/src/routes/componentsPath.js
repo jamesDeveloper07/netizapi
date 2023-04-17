@@ -32,6 +32,7 @@ import NewTicket from "../pages/common/Empresas/Watch/Pacotes/Tickets/New";
 
 import LogIntegracao from "../pages/common/Empresas/LogIntegracao";
 import LogEvento from "../pages/common/Empresas/LogEvento";
+import ContratosByEventos from "../pages/common/Empresas/ContratosByEventos";
 
 import DashboardAppNetiz from "../pages/dashboard/appNetiz";
 
@@ -208,6 +209,11 @@ const paths = [
     {
         path: '/log_evento',
         component: LogEvento,
+        layout: '/admin'
+    },
+    {
+        path: '/contratos_by_eventos',
+        component: ContratosByEventos,
         layout: '/admin'
     }
 ]
