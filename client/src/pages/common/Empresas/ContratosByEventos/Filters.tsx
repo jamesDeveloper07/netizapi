@@ -37,24 +37,36 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
 
     const { empresaSelecionada } = useContext(EmpresaContext)
 
-    const [dataInicialEventoLogs, setDataInicialEventoLogs] = usePersistedState('dataInicialEventoLogs', null)
-    const [dataFinalEventoLogs, setDataFinalEventoLogs] = usePersistedState('dataFinalEventoLogs', null)
+    const [dataInicialEventoLogs, setDataInicialEventoLogs] = usePersistedState('dataInicialEventoLogs', getDataInicioMes())
+    const [dataFinalEventoLogs, setDataFinalEventoLogs] = usePersistedState('dataFinalEventoLogs', getDataHoje())
 
-    const [dataInicialExecucaoLogs, setDataInicialExecucaoLogs] = usePersistedState('dataInicialExecucaoLogs', getDataHoje())
-    const [dataFinalExecucaoLogs, setDataFinalExecucaoLogs] = usePersistedState('dataFinalExecucaoLogs', getDataHoje())
+    // const [dataInicialExecucaoLogs, setDataInicialExecucaoLogs] = usePersistedState('dataInicialExecucaoLogs', getDataHoje())
+    // const [dataFinalExecucaoLogs, setDataFinalExecucaoLogs] = usePersistedState('dataFinalExecucaoLogs', getDataHoje())
 
     const [cliente, setCliente] = usePersistedState('clienteLogs', null)
     const [pesquisarTelefoneCliente, setPesquisarTelefoneCliente] = usePersistedState('pesquisarTelefoneClienteLogs', false)
 
     const [contrato, setContrato] = usePersistedState('contratoLogs', null)
 
-    const [status, setStatus] = usePersistedState('statusLogs', null)
+    const [stage, setStage] = usePersistedState('stageLogs', [])
+    const [stageList, setStageList] = useState([])
+
+    const [status, setStatus] = usePersistedState('statusLogs', [])
+    const [statusList, setStatusList] = useState([])
+
+    const [temSVA, setTemSVA] = usePersistedState('temSVALogs', -1)
+    const [temDeezer, setTemDeezer] = usePersistedState('temDeezerLogs', -1)
+    const [temWatch, setTemWatch] = usePersistedState('temWatchLogs', -1)
+    const [temHBO, setTemHBO] = usePersistedState('temHBOLogs', -1)
+
+    const [temSvaList] = useState([{ id: -1, value: '- Todos -' }, { id: 0, value: 'Não' }, { id: 1, value: 'Sim' }])
 
     //Flag para definir tempo de execução
     const [runLoad, setRunLoad] = useState(true)
     const [monitorClearFilters, setMonitorClearFilters] = useState(undefined)
-    //flag pra chamar o fillAcoes
-    const [runFillAcoes, setRunFillAcoes] = useState(true)
+    //flag pra chamar o fillStatus
+    const [runFillStatus, setRunFillStatus] = useState(true)
+    const [runFillStage, setRunFillStage] = useState(true)
 
     useEffect(() => {
         if (runLoad) {
@@ -68,6 +80,69 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
             search(true, true)
         }
     }, [monitorClearFilters])
+
+    useEffect(() => {
+        (async () => {
+            if (statusList.length === 0) await loadStatusList()
+            if (stageList.length === 0) await loadStageList()
+        })()
+    }, [])
+
+    useEffect(() => {
+        if (temSVA == 0) {
+            setTemDeezer(null)
+            setTemWatch(null)
+            setTemHBO(null)
+        }
+    }, [temSVA])
+
+    async function loadStatusList() {
+        try {
+            setStageList([])
+
+            const response = await api.get(`voalle/getstatuslist`)
+
+            if (response.data) {
+                const data = await response.data
+                // data.unshift({ id: -1, nome: '- Todos -' })
+                setStatusList(data)
+            }
+
+            if (status && status.length > 0 && runFillStatus) {
+                setStatus(status)
+            } else {
+                setStatus([])
+            }
+
+
+            setRunFillStatus(false)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    async function loadStageList() {
+        try {
+            const response = await api.get(`voalle/getstageslist`)
+
+            if (response.data) {
+                const data = await response.data
+                data.unshift({ id: -1, nome: '- Todos -' })
+                setStageList(data)
+            }
+
+            if (stage && stage > 0 && runFillStage) {
+                setStage(stage)
+            } else {
+                setStage(null)
+            }
+
+
+            setRunFillStage(false)
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
 
     function throwError(text: string) {
@@ -98,28 +173,37 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
             data_inicio_evento: dataInicialEventoLogs,
             data_fim_evento: dataFinalEventoLogs,
 
-            data_inicio_execucao: dataInicialExecucaoLogs,
-            data_fim_execucao: dataFinalExecucaoLogs,
+            // data_inicio_execucao: dataInicialExecucaoLogs,
+            // data_fim_execucao: dataFinalExecucaoLogs,
 
             cliente,
             pesquisarTelefoneCliente,
             contract_id: contrato,
             status,
+            stage,
+            temSVA,
+            temDeezer,
+            temWatch,
+            temHBO,
         }, clearPagination, clearSort)
     }
 
     function handleClearFilter() {
         setStatus(null)
-        setDataInicialEventoLogs(null)
-        setDataFinalEventoLogs(null)
+        setStage(null)
+        setDataInicialEventoLogs(getDataInicioMes())
+        setDataFinalEventoLogs(getDataHoje())
 
-        setDataInicialExecucaoLogs(getDataHoje())
-        setDataFinalExecucaoLogs(getDataHoje())
+        // setDataInicialExecucaoLogs(getDataHoje())
+        // setDataFinalExecucaoLogs(getDataHoje())
 
         setContrato('')
-
         setCliente('')
         setPesquisarTelefoneCliente(false)
+        setTemSVA(null)
+        setTemDeezer(null)
+        setTemWatch(null)
+        setTemHBO(null)
     }
 
     function handleMultipleSelect(target: any, state: any) {
@@ -132,7 +216,7 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
             <Filters
                 onSearch={handlePesquisar}
                 title={<h1>Contratos com Último Evento</h1>}
-                isLoading={undefined}                
+                isLoading={undefined}
                 isOpen={undefined}
                 clearFilters={handleClearFilter}
                 //@ts-ignore
@@ -269,141 +353,10 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
                             </Row>
                         </fieldset>
                     </Col>
-
-                    <Col xs="auto" lg={6} sm={12} md={12}>
-                        <fieldset className="border p-2">
-                            <legend className="w-auto" style={{ margin: 0 }}>
-                                <label
-                                    className="form-control-label"
-                                >
-                                    Período Integração
-                                </label>
-                            </legend>
-                            <Row>
-                                <Col xs={6}>
-                                    <FormGroup>
-                                        <label
-                                            className="form-control-label"
-                                            htmlFor="example-number-input"
-                                        >
-                                            Início
-                                        </label>
-                                        <InputGroup className="input-group-alternative">
-                                            <InputGroupAddon addonType="prepend">
-                                                <InputGroupText>
-                                                    <i className="ni ni-calendar-grid-58" />
-                                                </InputGroupText>
-                                            </InputGroupAddon>
-                                            <ReactDatetimeClass
-                                                inputProps={{
-                                                    placeholder: "Início",
-                                                    style: {
-                                                        width: '100px'
-                                                    }
-                                                }}
-                                                //COMENTADO PORQUE É TESTE DE DATA
-                                                value={moment(dataInicialExecucaoLogs)}
-                                                dateFormat="DD/MM/YYYY"
-                                                timeFormat={false}
-                                                renderDay={(props, currentDate, selectedDate) => {
-                                                    let classes = props.className;
-                                                    if (
-                                                        dataInicialExecucaoLogs &&
-                                                        dataFinalExecucaoLogs &&
-                                                        dataInicialExecucaoLogs._d + "" === currentDate._d + ""
-                                                    ) {
-                                                        classes += " start-date";
-                                                    } else if (
-                                                        dataInicialExecucaoLogs &&
-                                                        dataFinalExecucaoLogs &&
-                                                        new Date(dataInicialExecucaoLogs._d + "") <
-                                                        new Date(currentDate._d + "") &&
-                                                        new Date(dataFinalExecucaoLogs._d + "") >
-                                                        new Date(currentDate._d + "")
-                                                    ) {
-                                                        classes += " middle-date";
-                                                    } else if (
-                                                        dataInicialExecucaoLogs &&
-                                                        dataInicialExecucaoLogs._d + "" === currentDate._d + ""
-                                                    ) {
-                                                        classes += " end-date";
-                                                    }
-                                                    return (
-                                                        <td {...props} className={classes}>
-                                                            {currentDate.date()}
-                                                        </td>
-                                                    );
-                                                }}
-                                                onChange={e => setDataInicialExecucaoLogs(e)}
-                                            />
-                                        </InputGroup>
-                                    </FormGroup>
-                                </Col>
-                                <Col xs={6}>
-                                    <FormGroup>
-                                        <label
-                                            className="form-control-label"
-                                            htmlFor="example-number-input"
-                                        >
-                                            Fim
-                                        </label>
-                                        <InputGroup className="input-group-alternative">
-                                            <InputGroupAddon addonType="prepend">
-                                                <InputGroupText>
-                                                    <i className="ni ni-calendar-grid-58" />
-                                                </InputGroupText>
-                                            </InputGroupAddon>
-                                            <ReactDatetimeClass
-                                                inputProps={{
-                                                    placeholder: "Fim",
-                                                    style: {
-                                                        width: '100px'
-                                                    }
-                                                }}
-                                                value={moment(dataFinalExecucaoLogs)}
-                                                dateFormat="DD/MM/YYYY"
-                                                timeFormat={false}
-                                                renderDay={(props, currentDate, selectedDate) => {
-                                                    let classes = props.className;
-                                                    if (
-                                                        dataInicialExecucaoLogs &&
-                                                        dataFinalExecucaoLogs &&
-                                                        dataInicialExecucaoLogs._d + "" === currentDate._d + ""
-                                                    ) {
-                                                        classes += " start-date";
-                                                    } else if (
-                                                        dataInicialExecucaoLogs &&
-                                                        dataFinalExecucaoLogs &&
-                                                        new Date(dataInicialExecucaoLogs._d + "") <
-                                                        new Date(currentDate._d + "") &&
-                                                        new Date(dataFinalExecucaoLogs._d + "") >
-                                                        new Date(currentDate._d + "")
-                                                    ) {
-                                                        classes += " middle-date";
-                                                    } else if (
-                                                        dataFinalExecucaoLogs &&
-                                                        dataFinalExecucaoLogs._d + "" === currentDate._d + ""
-                                                    ) {
-                                                        classes += " end-date";
-                                                    }
-                                                    return (
-                                                        <td {...props} className={classes}>
-                                                            {currentDate.date()}
-                                                        </td>
-                                                    );
-                                                }}
-                                                onChange={e => setDataFinalExecucaoLogs(e)}
-                                            />
-                                        </InputGroup>
-                                    </FormGroup>
-                                </Col>
-                            </Row>
-                        </fieldset>
-                    </Col>
                 </Row>
 
                 <Row style={{ paddingTop: 15 }}>
-                    <Col xs="6" lg="6" sm="12" md="12">
+                    <Col xs="3" lg="3" sm="6" md="6">
                         <FormGroup>
                             <label
                                 className="form-control-label"
@@ -411,7 +364,7 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
                                 Contrato
                             </label>
                             <Input
-                                placeholder='Protocolo...'
+                                placeholder='Id do Contrato...'
                                 className="form-control"
                                 value={contrato}
                                 onChange={e => setContrato(e.target.value)}
@@ -419,7 +372,7 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
                         </FormGroup>
                     </Col>
 
-                    <Col xs="6" lg="6" sm="12" md="12">
+                    <Col xs="3" lg="3" sm="6" md="6">
                         <FormGroup>
                             <div
                                 style={{
@@ -449,7 +402,7 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
                                 </div>
                             </div>
                             <InputMask
-                                placeholder={pesquisarTelefoneCliente ? 'Telefone do cliente...' : 'Nome ou CPF/CNPJ do cliente...'}
+                                placeholder={pesquisarTelefoneCliente ? 'Telefone do cliente...' : 'Nome, E-mail ou CPF do cliente...'}
                                 className="form-control"
                                 maskPlaceholder={null}
                                 mask={pesquisarTelefoneCliente ? "99 99999-9999" : ""}
@@ -458,6 +411,158 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
                             />
                         </FormGroup>
                     </Col>
+
+                    <Col xs="3" lg="3" sm="6" md="6">
+                        <FormGroup>
+                            <label
+                                className="form-control-label"
+                            >
+                                Estágio
+                            </label>
+                            <InputGroup className="input-group-alternative">
+                                <Select2
+                                    className="input-group-alternative"
+                                    defaultValue="-1"
+                                    options={{
+                                        placeholder: "Selecione..."
+                                    }}
+                                    //@ts-ignore
+                                    onSelect={({ target }) => setStage(target.value)}
+                                    value={stage}
+                                    //@ts-ignore
+                                    data={stageList.map((item) => ({ id: item.id, text: item.nome }))}
+                                />
+                            </InputGroup>
+                        </FormGroup>
+                    </Col>
+                    <Col xs="3" lg="3" sm="6" md="6">
+                        <FormGroup>
+                            <label
+                                className="form-control-label"
+                                htmlFor="example-number-input"
+                            >
+                                Status
+                            </label>
+                            <InputGroup className="input-group-alternative">
+                                <Select2
+                                    multiple
+                                    className="input-group-alternative"
+                                    // defaultValue="-1"
+                                    //@ts-ignore
+                                    onSelect={({ target }) => handleMultipleSelect(target, setStatus)}
+                                    //@ts-ignore
+                                    onUnselect={({ target }) => handleMultipleSelect(target, setStatus)}
+                                    options={{
+                                        placeholder: "Selecione..."
+                                    }}
+                                    value={status}
+                                    //@ts-ignore
+                                    data={statusList.map((item) => ({ id: item.id, text: item.nome }))}
+                                />
+                            </InputGroup>
+                        </FormGroup>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col xs="3" lg="3" sm="6" md="6">
+                        <FormGroup>
+                            <label
+                                className="form-control-label"
+                            >
+                                Tem SVA's?
+                            </label>
+                            <InputGroup className="input-group-alternative">
+                                <Select2
+                                    className="input-group-alternative"
+                                    defaultValue="-1"
+                                    options={{
+                                        placeholder: "Selecione..."
+                                    }}
+                                    //@ts-ignore
+                                    onSelect={({ target }) => setTemSVA(target.value)}
+                                    value={temSVA}
+                                    //@ts-ignore
+                                    data={temSvaList.map((item) => ({ id: item.id, text: item.value }))}
+                                />
+                            </InputGroup>
+                        </FormGroup>
+                    </Col>
+
+                    {temSVA && temSVA != 0 &&
+                        <Col xs="3" lg="3" sm="6" md="6">
+                            <FormGroup>
+                                <label
+                                    className="form-control-label"
+                                >
+                                    Tem Deezer?
+                                </label>
+                                <InputGroup className="input-group-alternative">
+                                    <Select2
+                                        className="input-group-alternative"
+                                        defaultValue="-1"
+                                        options={{
+                                            placeholder: "Selecione..."
+                                        }}
+                                        //@ts-ignore
+                                        onSelect={({ target }) => setTemDeezer(target.value)}
+                                        value={temDeezer}
+                                        //@ts-ignore
+                                        data={temSvaList.map((item) => ({ id: item.id, text: item.value }))}
+                                    />
+                                </InputGroup>
+                            </FormGroup>
+                        </Col>
+                    }
+                    {temSVA && temSVA != 0 &&
+                        <Col xs="3" lg="3" sm="6" md="6">
+                            <FormGroup>
+                                <label
+                                    className="form-control-label"
+                                >
+                                    Tem Watch?
+                                </label>
+                                <InputGroup className="input-group-alternative">
+                                    <Select2
+                                        className="input-group-alternative"
+                                        defaultValue="-1"
+                                        options={{
+                                            placeholder: "Selecione..."
+                                        }}
+                                        //@ts-ignore
+                                        onSelect={({ target }) => setTemWatch(target.value)}
+                                        value={temWatch}
+                                        //@ts-ignore
+                                        data={temSvaList.map((item) => ({ id: item.id, text: item.value }))}
+                                    />
+                                </InputGroup>
+                            </FormGroup>
+                        </Col>
+                    }
+                    {temSVA && temSVA != 0 &&
+                        <Col xs="3" lg="3" sm="6" md="6">
+                            <FormGroup>
+                                <label
+                                    className="form-control-label"
+                                >
+                                    Tem HBO?
+                                </label>
+                                <InputGroup className="input-group-alternative">
+                                    <Select2
+                                        className="input-group-alternative"
+                                        defaultValue="-1"
+                                        options={{
+                                            placeholder: "Selecione..."
+                                        }}
+                                        //@ts-ignore
+                                        onSelect={({ target }) => setTemHBO(target.value)}
+                                        value={temHBO}
+                                        //@ts-ignore
+                                        data={temSvaList.map((item) => ({ id: item.id, text: item.value }))}
+                                    />
+                                </InputGroup>
+                            </FormGroup>
+                        </Col>
+                    }
                 </Row>
             </Filters>
         </>

@@ -112,6 +112,7 @@ const FilterSolicitacoes: React.FC<Props> = ({ title, notify, load, ...props }) 
 
             if (response.data) {
                 const data = await response.data
+                data.unshift({ id: -1, nome: '- Todas -' })
                 setAcoesList(data)
             }
 
@@ -663,7 +664,7 @@ const FilterSolicitacoes: React.FC<Props> = ({ title, notify, load, ...props }) 
                                 className="form-control-label"
                                 htmlFor="example-number-input"
                             >
-                                Ações
+                                Ação
                             </label>
                             <InputGroup className="input-group-alternative">
                                 <Select2
