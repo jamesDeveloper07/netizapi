@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import EmpresaContext from "../../../../contexts/Empresa";
 import { useHistory } from "react-router-dom";
 
 import { Badge } from "reactstrap";
@@ -8,6 +9,7 @@ import { LogEvento } from '../../../../entities/Common';
 import Avatar from '../../../../components/Avatar';
 import { hasPermission, getContrastYIQ } from '../../../../utils';
 import moment from 'moment'
+import api from "../../../../services/api";
 
 // import { Container } from './styles';
 interface Props {
@@ -20,12 +22,14 @@ interface Props {
 
 const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, onTableChange, notify, loading, ...props }) => {
   const history = useHistory()
+  const { empresaSelecionada } = useContext(EmpresaContext)
+  const [reexecutandoIntegracao, setReexecutandoIntegracao] = useState(false)
 
   const [columns] = useState([
-    // {
-    //   dataField: 'acoes',
-    //   formatter: (cell: any, row: any) => acoesFormatter(cell, row)
-    // },
+    {
+      dataField: 'acoes',
+      formatter: (cell: any, row: any) => acoesFormatter(cell, row)
+    },
     {
       dataField: "contract_id",
       text: 'Contrato',
@@ -111,6 +115,88 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, o
 
 
   ])
+
+  const acoesFormatter = (cell: any, row: { contract_id: any; }) => {
+    return (
+      <MenuComportamento
+        actions={[{
+          label: 'Reexecutar Integração',
+          icon: 'fa fa-share-alt',
+          onClick: () => handleRexecutarIntegracao(row.contract_id)
+        },
+        {
+          label: 'Forçar Cancelamento de SVA\'s',
+          icon: 'fa fa-share-alt',
+          onClick: () => handleForcarCancelamento(row.contract_id)
+        }]}
+      />
+    )
+  }
+
+  async function handleRexecutarIntegracao(_contract_id: any) {
+
+    try {
+      setReexecutandoIntegracao(true)
+      const response = await api.get(`voalle/reexecutarintegracao`, {
+        params: {
+          emp_id: empresaSelecionada?.id,
+          contract_id: _contract_id
+        }
+      })
+
+      console.log('RESPONSE REEXECUTAR INTEGRAÇÂO');
+      console.log(response.data);
+
+      if (response.data && response.data.length > 0) {
+        notify('success', `Integração realizada: ${response.data.length} contrato executado`);
+      } else {
+        notify('success', `Nenhum Contrato a ser executado no momento.`);
+      }
+
+    } catch (err) {
+      //@ts-ignore
+      console.log(err);
+      //@ts-ignore
+      console.log(err.response)
+      notify('danger', 'Houve um problema ao Executar as Reexecução de integração.');
+    } finally {
+      setReexecutandoIntegracao(false)
+    }
+
+  }
+
+  async function handleForcarCancelamento(_contract_id: any) {
+    // notify('warning', 'Função ainda não implementda.');
+
+    try {
+      setReexecutandoIntegracao(true)
+      const response = await api.get(`voalle/executarcancelamentomanual`, {
+        params: {
+          emp_id: empresaSelecionada?.id,
+          contract_id: _contract_id
+        }
+      })
+
+      console.log('RESPONSE CANCELAMENTO MANUAL');
+      console.log(response.data);
+
+      if (response.data && response.data.length > 0) {
+        notify('success', `Integração realizada: ${response.data.length} contrato executado`);
+      } else {
+        notify('success', `Nenhum Contrato a ser executado no momento.`);
+      }
+
+    } catch (err) {
+      //@ts-ignore
+      console.log(err);
+      //@ts-ignore
+      console.log(err.response)
+      notify('danger', 'Houve um problema ao Executar o Cancelamento Manual.');
+    } finally {
+      setReexecutandoIntegracao(false)
+    }
+
+  }
 
   function getColorStage(row: any) {
     var color = 'secondary'
@@ -218,7 +304,7 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, o
     </>
   )
 
-  const booleanFormater = (cell: any, row: any, title:any) => (
+  const booleanFormater = (cell: any, row: any, title: any) => (
     <>
       <Badge
         id={`bool-${row.id}`}
