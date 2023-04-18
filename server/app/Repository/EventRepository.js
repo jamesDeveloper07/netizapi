@@ -463,7 +463,7 @@ class EventRepository {
     return false;
   }
 
-  async ativarDeezer(event, SVAsOK, _separadorOk, SVAsError, _separadorError) {
+  async ativarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError) {
     var servico_id = 1
     var acao_id = 1
     var tipoExecucao = 'activate';
@@ -492,7 +492,7 @@ class EventRepository {
     }
   }
 
-  async cancelarDeezer(event, SVAsOK, _separadorOk, SVAsError, _separadorError) {
+  async cancelarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError) {
     var servico_id = 1
     var acao_id = 2
     var tipoExecucao = 'deactivate';
