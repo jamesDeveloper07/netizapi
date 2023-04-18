@@ -31,6 +31,8 @@ Route.group(() => {
 
   Route.get('/getcontratosbyeventos', 'Voalle/EventController.getByVarious').middleware(['auth:jwt']);
   Route.get('/processareventos', 'Voalle/EventController.processarEventos').middleware(['auth:jwt']);
+  Route.get('/reexecutarintegracao', 'Voalle/EventController.reexecutarIntegracao').middleware(['auth:jwt']);
+  Route.get('/executarcancelamentomanual', 'Voalle/EventController.executarCancelamentoManual').middleware(['auth:jwt']);
 
   Route.get('/teste2', 'Voalle/VoalleController.teste2');
 

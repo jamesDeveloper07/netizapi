@@ -121,7 +121,65 @@ class EventRepository {
     return contractEvents;
   }
 
-  async executarIntegracoes() {
+  async executarCancelamentoManual(_contract_id) {
+    try {
+      console.log('\n\n=====EXECUTAR CANCELAMENTO MANUAL\n');
+
+      var sqlContrato = ''
+      if (_contract_id && _contract_id > 0) {
+        sqlContrato = `and contract_id = ${_contract_id}`
+      }
+      const where = `${sqlContrato}`;
+
+      const contractEvents = await this.getContractsByEvents('*', 0, where, null);
+
+      console.log('\n===== TRATANDO EVENTOS =====\n')
+
+      for (const evento of contractEvents) {
+        console.log('\n===INICIO====================================')
+        console.log('===== EVENTO =====')
+        console.log({ evento })
+
+        if (_contract_id) {
+          console.log('===== ATUALIZANDO DESCRIÇÂO PARA CANCELAMENTO MANUAL =====\n')
+          evento.event_descricao += " (CANCELAMENTO MANUAL)"
+        }
+
+        console.log('===== CADASTRAR LOG EVENTO =====\n')
+        var newLogEvent = await LogEvento.create(evento)
+        const id = newLogEvent.id
+        newLogEvent = await LogEvento.query()
+          .where({ id })
+          .first()
+        newLogEvent = newLogEvent.$attributes;
+
+        if (_contract_id) {
+          console.log('===== FORÇANDO CANCELAMENTO MANUAL =====\n')
+          await this.forcarCancelamentoSVAS(newLogEvent);
+        }
+        console.log('===FIM=======================================\n')
+      }
+
+      // return contractEvents;
+      return {
+        status: 200,
+        menssage: 'Processo executado com sucesso!',
+        contractEvents
+      }
+
+
+    } catch (error) {
+      console.error('Erro no metodo executarCancelamentoManual api/voalle \n', error)
+      // return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo getEvents api/voalle' })
+      return {
+        status: 500,
+        menssage: 'Não conseguimos realizar o metodo executarCancelamentoManual api/voalle.',
+        contractEvents: null
+      }
+    }
+  }
+
+  async executarIntegracoes(_contract_id) {
     try {
       console.log('Método GET EVENTS EVENT REPOSITORY');
 
@@ -135,25 +193,39 @@ class EventRepository {
         }
       }
 
-      const lastEventId = paramLastEventId.valor;
+      var lastEventId = paramLastEventId.valor;
 
-      const contractEvents = await this.getContractsByEvents('*', lastEventId, null, null);
+      var sqlContrato = ''
+      if (_contract_id && _contract_id > 0) {
+        sqlContrato = `and contract_id = ${_contract_id}`
+        lastEventId = 0;
+      }
+      const where = `${sqlContrato}`;
+
+      const contractEvents = await this.getContractsByEvents('*', lastEventId, where, null);
 
       console.log('\n===== TRATANDO EVENTOS =====\n')
 
-      if (contractEvents && contractEvents.length > 0) {
+      if (contractEvents && contractEvents.length > 0 && !_contract_id) {
         paramLastEventId.valor = contractEvents[contractEvents.length - 1].event_id
         paramLastEventId.updated_at = new Date();
         await paramLastEventId.save();
         console.log(`===== ACIONANDO O FOR =====\n${contractEvents.length} eventos encontrados`)
       } else {
-        console.log('===== SEM EVENTOS NOVOS NO MOMENTO =====\n')
+        if (!_contract_id) {
+          console.log('===== SEM EVENTOS NOVOS NO MOMENTO =====\n')
+        }
       }
 
       for (const evento of contractEvents) {
         console.log('\n===INICIO====================================')
         console.log('===== EVENTO =====')
         console.log({ evento })
+
+        if (_contract_id) {
+          console.log('===== ATUALIZANDO DESCRIÇÂO E DATA DE EVENTO PARA REEXECUÇÂO =====\n')
+          evento.event_descricao += " (REEXECUÇÃO DE INTEGRAÇÃO)"
+        }
 
         console.log('===== CADASTRAR LOG EVENTO =====\n')
         var newLogEvent = await LogEvento.create(evento)
@@ -163,9 +235,13 @@ class EventRepository {
           .first()
         newLogEvent = newLogEvent.$attributes;
 
-        console.log('===== EXECUTAR INTEGRAÇÂO =====\n')
-        await this.executarIntegracao(newLogEvent);
-
+        if (_contract_id) {
+          console.log('===== REEXECUTAR INTEGRAÇÂO =====\n')
+          await this.reexecutarIntegracao(newLogEvent);
+        } else {
+          console.log('===== EXECUTAR INTEGRAÇÂO =====\n')
+          await this.executarIntegracao(newLogEvent);
+        }
         console.log('===FIM=======================================\n')
       }
 
@@ -178,11 +254,11 @@ class EventRepository {
 
 
     } catch (error) {
-      console.error('Erro no metodo getEvents api/voalle \n', error)
+      console.error('Erro no metodo executarIntegracoes api/voalle \n', error)
       // return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo getEvents api/voalle' })
       return {
         status: 500,
-        menssage: 'Não conseguimos realizar o metodo getEvents api/voalle.',
+        menssage: 'Não conseguimos realizar o metodo executarIntegracoes api/voalle.',
         contractEvents: null
       }
     }
@@ -220,6 +296,16 @@ class EventRepository {
           }
         }
       }
+    }
+  }
+
+  async reexecutarIntegracao(event) {
+
+    if (this.isAprocavao(event.event_type_id)) {
+      await this.forcarCancelamentoSVAS(event);
+      await this.validarAtivacaoSVAS(event, 'Ativacao');
+    } else {
+      this.executarIntegracao(event);
     }
   }
 
@@ -377,7 +463,7 @@ class EventRepository {
     return false;
   }
 
-  async ativarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError) {
+  async ativarDeezer(event, SVAsOK, _separadorOk, SVAsError, _separadorError) {
     var servico_id = 1
     var acao_id = 1
     var tipoExecucao = 'activate';
@@ -406,7 +492,7 @@ class EventRepository {
     }
   }
 
-  async cancelarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError) {
+  async cancelarDeezer(event, SVAsOK, _separadorOk, SVAsError, _separadorError) {
     var servico_id = 1
     var acao_id = 2
     var tipoExecucao = 'deactivate';

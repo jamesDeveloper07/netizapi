@@ -184,12 +184,108 @@ class EventController {
           return response.status(returnRepository.status).send(returnRepository.menssage)
         }
       } else {
-        return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo getEvents api/voalle (error 001)' })
+        return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo processarEventos api/voalle (error 001)' })
       }
 
     } catch (error) {
-      console.error('Erro no metodo getEvents api/voalle \n', error)
-      return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo getEvents api/voalle (error 002)' })
+      console.error('Erro no metodo processarEventos api/voalle \n', error)
+      return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo processarEventos api/voalle (error 002)' })
+    }
+  }
+
+  async reexecutarIntegracao({ request, response, params, auth }) {
+    try {
+      console.log('\n\n====REEXECUTAR INTEGRAÇÃO====\n');
+
+      var { contract_id, event_id } = request.only(['contract_id', 'event_id']);
+
+      const user = await auth.getUser();
+      let header = request.headers()
+      let empresa_id = header.empresa_id
+
+      if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
+        const { emp_id } = request.only(['emp_id'])
+        empresa_id = emp_id
+      }
+
+      if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
+        response.status(400).send('Empresa não informada')
+      }
+
+      let expression = '(administrador)'
+      const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
+
+      if (!isAdministrador) {
+        response.status(400).send('Você não tem permissão para executar está ação.')
+      }
+
+      if (!contract_id || contract_id <= 0) {
+        response.status(400).send('Contrato não informado para reexecução de integração.')
+      }
+
+      const returnRepository = await EventRepository.executarIntegracoes(contract_id);
+
+      if (returnRepository && returnRepository.status) {
+        if (returnRepository.status == 200 && returnRepository.contractEvents) {
+          return returnRepository.contractEvents
+        } else {
+          return response.status(returnRepository.status).send(returnRepository.menssage)
+        }
+      } else {
+        return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo reexecutarIntegracao api/voalle (error 001)' })
+      }
+
+    } catch (error) {
+      console.error('Erro no metodo reexecutarIntegracao api/voalle \n', error)
+      return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo reexecutarIntegracao api/voalle (error 002)' })
+    }
+  }
+
+  async executarCancelamentoManual({ request, response, params, auth }) {
+    try {
+      console.log('\n\n====EXECUTAR CANCELAMENTO MANUAL====\n');
+
+      var { contract_id, event_id } = request.only(['contract_id', 'event_id']);
+
+      const user = await auth.getUser();
+      let header = request.headers()
+      let empresa_id = header.empresa_id
+
+      if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
+        const { emp_id } = request.only(['emp_id'])
+        empresa_id = emp_id
+      }
+
+      if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
+        response.status(400).send('Empresa não informada')
+      }
+
+      let expression = '(administrador)'
+      const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
+
+      if (!isAdministrador) {
+        response.status(400).send('Você não tem permissão para executar está ação.')
+      }
+
+      if (!contract_id || contract_id <= 0) {
+        response.status(400).send('Contrato não informado para reexecução de integração.')
+      }
+
+      const returnRepository = await EventRepository.executarCancelamentoManual(contract_id);
+
+      if (returnRepository && returnRepository.status) {
+        if (returnRepository.status == 200 && returnRepository.contractEvents) {
+          return returnRepository.contractEvents
+        } else {
+          return response.status(returnRepository.status).send(returnRepository.menssage)
+        }
+      } else {
+        return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo executarCancelamentoManual api/voalle (error 001)' })
+      }
+
+    } catch (error) {
+      console.error('Erro no metodo executarCancelamentoManual api/voalle \n', error)
+      return response.status(500).send({ menssage: 'Não conseguimos realizar o metodo executarCancelamentoManual api/voalle (error 002)' })
     }
   }
 
