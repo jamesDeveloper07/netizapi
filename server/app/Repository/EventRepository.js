@@ -16,6 +16,16 @@ const AcaoServico = use('App/Models/Common/AcaoServico');
 
 class EventRepository {
 
+  async getStatusList() {
+    const statusList = await Database.connection('pgvoalle').raw('select distinct(status) as id, v_status as nome from erp.contracts order by status asc');
+    return statusList.rows
+  }
+
+  async getStageList() {
+    const stageList = await Database.connection('pgvoalle').raw('select distinct(stage) as id, v_stage as nome from erp.contracts order by stage asc');
+    return stageList.rows
+  }
+
   async getContractsByEvents(colunas, lastEventId, where, paginate) {
 
     const colunasPadrao = `contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status,

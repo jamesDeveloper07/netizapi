@@ -7,13 +7,35 @@ const RoleAndPermission = use('App/Utils/RoleAndPermission');
 
 class EventController {
 
+  async getStatusList({ response, request, auth, params }) {
+
+    const status = await EventRepository.getStatusList();
+    return status
+  }
+
+  async getStageList({ response, request, auth, params }) {
+    try {
+      const stage = await EventRepository.getStageList();
+      return stage
+    } catch (error) {
+      console.log(error);
+      response.status(400).send(error)
+    }
+
+  }
 
   async getByVarious({ response, request, auth, params }) {
     try {
       const user = await auth.getUser();
-      const { contract_id, client_id, dataInicialEvento, dataFinalEvento } = request.only(['contract_id', 'client_id', 'dataInicialEvento', 'dataFinalEvento'])
+      const { contract_id, client_id, cliente, pesquisarTelefoneCliente } = request.only(['contract_id', 'client_id', 'cliente', 'pesquisarTelefoneCliente'])
 
-      const { cliente, pesquisarTelefoneCliente } = request.only(['cliente', 'pesquisarTelefoneCliente']);
+      var { data_inicio_evento, data_fim_evento } = request.only(['data_inicio_evento', 'data_fim_evento']);
+
+      var { stage, status } = request.only(['stage', 'status']);
+
+      var { temSVA, temDeezer, temWatch, temHBO } = request.only(['temSVA', 'temDeezer', 'temWatch', 'temHBO']);
+
+      // var { data_inicio_execucao, data_fim_execucao } = request.only(['data_inicio_execucao', 'data_fim_execucao']);
 
       let { page = 0,
         limit = 10,
@@ -42,24 +64,69 @@ class EventController {
             sqlCliente = `and NULLIF(regexp_replace(phone, '[^\\.\\d]','','g'), '') like '%${tel}%'`
           } else {
             var doc = cliente.replace(/[^0-9]/g, '')
-            sqlCliente = `and name ilike '%${cliente}%' or email ilike '%${cliente}%' ${doc ? `or tx_id like '%${doc}%'` : ''} `
+            sqlCliente = `and (name ilike '%${cliente}%' or email ilike '%${cliente}%'${doc ? ` or tx_id like '%${doc}%')` : ')'} `
           }
         }
       }
 
       var sqlPeriodo = ''
-      if (dataInicialEvento && dataFinalEvento) {
-        sqlPeriodo = `and date(event_data AT TIME ZONE 'BRA') BETWEEN date('${dataInicialEvento}' AT TIME ZONE 'BRA') AND date('${dataFinalEvento}' AT TIME ZONE 'BRA') `;
+      if (data_inicio_evento && data_fim_evento) {
+        sqlPeriodo = `and date(event_data AT TIME ZONE 'BRA') BETWEEN date('${data_inicio_evento}' AT TIME ZONE 'BRA') AND date('${data_fim_evento}' AT TIME ZONE 'BRA') `;
       } else {
-        if (dataInicialEvento) {
-          sqlPeriodo = `and date(event_data AT TIME ZONE 'BRA') >= date('${dataInicialEvento}')`
+        if (data_inicio_evento) {
+          sqlPeriodo = `and date(event_data AT TIME ZONE 'BRA') >= date('${data_inicio_evento}')`
         }
-        if (dataFinalEvento) {
-          sqlPeriodo = `and date(event_data AT TIME ZONE 'BRA') <= date('${dataFinalEvento}')`
+        if (data_fim_evento) {
+          sqlPeriodo = `and date(event_data AT TIME ZONE 'BRA') <= date('${data_fim_evento}')`
         }
       }
 
-      const where = `${sqlCliente} ${sqlPeriodo} ${sqlContrato}`;
+      var sqlStage = ''
+      if (stage && stage > 0) {
+        sqlStage = `and stage = ${stage}`
+      }
+
+      var sqlStatus = ''
+      if (status && status.length > 0) {
+        sqlStatus = `and status in (${status.join()})`
+      }
+
+      var sqlSVAs = ''
+      if (temSVA == 0) {
+        sqlSVAs += `and not isservicodigital`
+      } else {
+        if (temSVA == 1) {
+          sqlSVAs += `and isservicodigital `
+        }
+
+        if (temDeezer == 0) {
+          sqlSVAs += `and not isdeezer `
+        } else {
+          if (temDeezer == 1) {
+            sqlSVAs += `and isdeezer `
+          }
+        }
+
+        if (temWatch == 0) {
+          sqlSVAs += `and not iswatch `
+        } else {
+          if (temWatch == 1) {
+            sqlSVAs += `and iswatch `
+          }
+        }
+
+        if (temHBO == 0) {
+          sqlSVAs += `and not ishbo`
+        } else {
+          if (temHBO == 1) {
+            sqlSVAs += `and ishbo`
+          }
+        }
+
+      }
+
+
+      const where = `${sqlContrato} ${sqlCliente} ${sqlPeriodo} ${sqlStage} ${sqlStatus} ${sqlSVAs}`;
 
       const paginate = `order by ${sortField} ${sortOrder}
       LIMIT ${limit} OFFSET ${page ? (parseInt(page) * parseInt(limit)) : 0}`;
