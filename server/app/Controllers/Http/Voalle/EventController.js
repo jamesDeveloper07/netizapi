@@ -165,14 +165,14 @@ class EventController {
       }
 
       if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
-        response.status(400).send('Empresa não informada')
+        return response.status(400).send('Empresa não informada')
       }
 
       let expression = '(administrador)'
       const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
 
       if (!isAdministrador) {
-        response.status(400).send('Você não tem permissão para executar está ação.')
+        return response.status(400).send('Você não tem permissão para executar está ação.')
       }
 
       const returnRepository = await EventRepository.executarIntegracoes();
@@ -209,18 +209,18 @@ class EventController {
       }
 
       if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
-        response.status(400).send('Empresa não informada')
+        return response.status(400).send('Empresa não informada')
       }
 
       let expression = '(administrador)'
       const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
 
       if (!isAdministrador) {
-        response.status(400).send('Você não tem permissão para executar está ação.')
+        return response.status(400).send('Você não tem permissão para executar está ação.')
       }
 
       if (!contract_id || contract_id <= 0) {
-        response.status(400).send('Contrato não informado para reexecução de integração.')
+        return response.status(400).send('Contrato não informado para reexecução de integração.')
       }
 
       const returnRepository = await EventRepository.executarIntegracoes(contract_id, user.id);
@@ -257,18 +257,18 @@ class EventController {
       }
 
       if (!empresa_id || isNaN(empresa_id) || parseInt(empresa_id) <= 0) {
-        response.status(400).send('Empresa não informada')
+        return response.status(400).send('Empresa não informada')
       }
 
       let expression = '(administrador)'
       const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
 
       if (!isAdministrador) {
-        response.status(400).send('Você não tem permissão para executar está ação.')
+       return response.status(400).send('Você não tem permissão para executar está ação.')
       }
 
       if (!contract_id || contract_id <= 0) {
-        response.status(400).send('Contrato não informado para reexecução de integração.')
+        return response.status(400).send('Contrato não informado para reexecução de integração.')
       }
 
       const returnRepository = await EventRepository.executarCancelamentoManual(contract_id, user.id);
