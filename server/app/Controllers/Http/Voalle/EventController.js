@@ -169,9 +169,9 @@ class EventController {
       }
 
       let expression = '(administrador)'
-      const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
+      const hasPermission = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
 
-      if (!isAdministrador) {
+      if (!hasPermission) {
         return response.status(400).send('Você não tem permissão para executar está ação.')
       }
 
@@ -212,10 +212,10 @@ class EventController {
         return response.status(400).send('Empresa não informada')
       }
 
-      let expression = '(administrador)'
-      const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
+      let expression = '(administrador or supervisor)'
+      const hasPermission = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
 
-      if (!isAdministrador) {
+      if (!hasPermission) {
         return response.status(400).send('Você não tem permissão para executar está ação.')
       }
 
@@ -260,10 +260,10 @@ class EventController {
         return response.status(400).send('Empresa não informada')
       }
 
-      let expression = '(administrador)'
-      const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
+      let expression = '(administrador or supervisor)'
+      const hasPermission = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
 
-      if (!isAdministrador) {
+      if (!hasPermission) {
         return response.status(400).send('Você não tem permissão para executar está ação.')
       }
 

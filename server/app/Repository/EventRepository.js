@@ -28,11 +28,35 @@ class EventRepository {
 
   async getContractsByEvents(colunas, lastEventId, where, paginate) {
 
+    var isHomologacao = false;
+    const paramIsHML = await Parametro.findBy({ chave: 'is_homologacao' });
+
+    if (paramIsHML && paramIsHML.id && paramIsHML.id > 0) {
+      if (paramIsHML.valor && (paramIsHML.valor.toLowerCase() == 'true' || paramIsHML.valor.toLowerCase() == 'verdadeiro')) {
+        isHomologacao = true;
+      }
+    }
+
+    var selectContractByEvents;
+
     const colunasPadrao = `contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status,
     deleted, event_id, event_type_id, event_descricao, event_data, itens, service_products, isservicodigital, isdeezer,
     deezer_item_id, iswatch, watch_item_id, ishbo, hbo_item_id`;
 
-    const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM (
+    if (isHomologacao) {
+      const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM public.select_events where TRUE and event_id > ${lastEventId ? lastEventId : 0}
+      ${where && where.length > 0 ? where : ''}
+      ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`;
+
+      selectContractByEvents = await Database
+        .connection('pg')
+        .raw(select);
+
+      // later close the connection
+      Database.close(['pg']);
+
+    } else {
+      const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM (
       Select contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status, deleted, event_id
       ,(select contract_event_type_id from erp.contract_events where id = event_id) as event_type_id
       ,(select description from erp.contract_events where id = event_id) as event_descricao
@@ -99,23 +123,13 @@ class EventRepository {
       ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`
 
 
-    const selectContractByEvents = await Database
-      .connection('pgvoalle')
-      .raw(select);
+      selectContractByEvents = await Database
+        .connection('pgvoalle')
+        .raw(select);
 
-    // later close the connection
-    Database.close(['pgvoalle']);
-
-    // const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM public.select_events where TRUE and event_id > ${lastEventId ? lastEventId : 0}
-    // ${where && where.length > 0 ? where : ''}
-    // ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`;
-
-    // const selectContractByEvents = await Database
-    //   .connection('pg')
-    //   .raw(select);
-
-    // // later close the connection
-    // Database.close(['pg']);
+      // later close the connection
+      Database.close(['pgvoalle']);
+    }
 
     const contractEvents = selectContractByEvents.rows
 
