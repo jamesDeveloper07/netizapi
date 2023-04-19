@@ -44,6 +44,7 @@ class LogEventoController {
     ])
 
     const query = LogEvento.query()
+      .with('user')
       .with('logsIntegracao')
       .orderByRaw('created_at desc, id desc')
 

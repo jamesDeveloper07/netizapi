@@ -34,6 +34,8 @@ class CreateLogEventosSchema extends Schema {
       table.boolean('ishbo')
       table.bigInteger('hbo_item_id')
 
+      table.integer('user_id').unsigned().references('id').inTable('security.users').comment('Usuário que criou/executou a ação.')
+
       table.timestamp('created_at').notNullable().defaultTo(this.fn.now())
       table.timestamp('updated_at').notNullable().defaultTo(this.fn.now())
       table.timestamp('deleted_at')

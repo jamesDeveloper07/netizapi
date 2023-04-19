@@ -223,7 +223,7 @@ class EventController {
         response.status(400).send('Contrato não informado para reexecução de integração.')
       }
 
-      const returnRepository = await EventRepository.executarIntegracoes(contract_id);
+      const returnRepository = await EventRepository.executarIntegracoes(contract_id, user.id);
 
       if (returnRepository && returnRepository.status) {
         if (returnRepository.status == 200 && returnRepository.contractEvents) {
@@ -271,7 +271,7 @@ class EventController {
         response.status(400).send('Contrato não informado para reexecução de integração.')
       }
 
-      const returnRepository = await EventRepository.executarCancelamentoManual(contract_id);
+      const returnRepository = await EventRepository.executarCancelamentoManual(contract_id, user.id);
 
       if (returnRepository && returnRepository.status) {
         if (returnRepository.status == 200 && returnRepository.contractEvents) {

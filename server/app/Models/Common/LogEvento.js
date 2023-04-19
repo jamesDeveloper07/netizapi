@@ -12,6 +12,9 @@ class LogEvento extends Model {
     return this.hasMany('App/Models/Common/LogIntegracao')
   }
 
+  user() {
+    return this.belongsTo('App/Models/Security/User')
+  }
 
 }
 
