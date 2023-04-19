@@ -264,7 +264,7 @@ class EventController {
       const isAdministrador = await RoleAndPermission.validarRoles(user.id, empresa_id, expression)
 
       if (!isAdministrador) {
-       return response.status(400).send('Você não tem permissão para executar está ação.')
+        return response.status(400).send('Você não tem permissão para executar está ação.')
       }
 
       if (!contract_id || contract_id <= 0) {
