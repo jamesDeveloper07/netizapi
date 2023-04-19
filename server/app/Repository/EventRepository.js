@@ -32,90 +32,90 @@ class EventRepository {
     deleted, event_id, event_type_id, event_descricao, event_data, itens, service_products, isservicodigital, isdeezer,
     deezer_item_id, iswatch, watch_item_id, ishbo, hbo_item_id`;
 
-    // const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM (
-    //   Select contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status, deleted, event_id
-    //   ,(select contract_event_type_id from erp.contract_events where id = event_id) as event_type_id
-    //   ,(select description from erp.contract_events where id = event_id) as event_descricao
-    //   ,(select date from erp.contract_events where id = event_id) as event_data
-    //   ,itens::text, service_products::text
-    //   ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint]) ) as isServicoDigital
+    const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM (
+      Select contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status, deleted, event_id
+      ,(select contract_event_type_id from erp.contract_events where id = event_id) as event_type_id
+      ,(select description from erp.contract_events where id = event_id) as event_descricao
+      ,(select date from erp.contract_events where id = event_id) as event_data
+      ,itens::text, service_products::text
+      ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint]) ) as isServicoDigital
 
-    //   ,(service_products is not null and service_products @> ARRAY[698::bigint]) as isDeezer
-    //   ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.deleted is FALSE limit 1) as deezer_item_id
+      ,(service_products is not null and service_products @> ARRAY[698::bigint]) as isDeezer
+      ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.deleted is FALSE limit 1) as deezer_item_id
 
-    //   ,(service_products is not null and service_products @> ARRAY[699::bigint]) as isWatch
-    //   ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 699 and sva.deleted is FALSE limit 1) as watch_item_id
+      ,(service_products is not null and service_products @> ARRAY[699::bigint]) as isWatch
+      ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 699 and sva.deleted is FALSE limit 1) as watch_item_id
 
-    //   ,(service_products is not null and service_products @> ARRAY[700::bigint]) as isHBO
-    //   ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 700 and sva.deleted is FALSE limit 1) as hbo_item_id
+      ,(service_products is not null and service_products @> ARRAY[700::bigint]) as isHBO
+      ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 700 and sva.deleted is FALSE limit 1) as hbo_item_id
 
-    //   from (
-    //   SELECT cont.id as contract_id
-    //   ,cont.client_id, cli.name, cli.tx_id, cli.type_tx_id, cli.cell_phone_1 as phone, cli.email
-    //   , cont.stage, cont.v_stage, cont.status, cont.v_status, cont.deleted
-    //   , (select max(id) from erp.contract_events where contract_id = cont.id and date < now() and id > ${lastEventId}  --and deleted is false
-    //        and contract_event_type_id in (
-    //     3,  145,  117, 118 --Aprovação
-    //     ,24, 110, 144, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 174, 175 --Cancelamento
-    //     ,43, 151 --Suspensão
-    //     ,40, 81 --Bloqueio
-    //     ,41, 106 --Desbloqueio/Reativação
-    //     ,10 --Alteração de Situação
-    //     ,27, 133, 28 --Inclusao, Alteração e Exclusão de Servicos
-    //     ,8 --Alteração Titularidade
-    //     )
-    //     ) as event_id
-    //   ,array_agg(distinct(item.id)) as itens
-    //   ,array_agg(distinct(item.service_product_id)) as service_products
+      from (
+      SELECT cont.id as contract_id
+      ,cont.client_id, cli.name, cli.tx_id, cli.type_tx_id, cli.cell_phone_1 as phone, cli.email
+      , cont.stage, cont.v_stage, cont.status, cont.v_status, cont.deleted
+      , (select max(id) from erp.contract_events where contract_id = cont.id and date < now() and id > ${lastEventId}  --and deleted is false
+           and contract_event_type_id in (
+        3,  145,  117, 118 --Aprovação
+        ,24, 110, 144, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 174, 175 --Cancelamento
+        ,43, 151 --Suspensão
+        ,40, 81 --Bloqueio
+        ,41, 106 --Desbloqueio/Reativação
+        ,10 --Alteração de Situação
+        ,27, 133, 28 --Inclusao, Alteração e Exclusão de Servicos
+        ,8 --Alteração Titularidade
+        )
+        ) as event_id
+      ,array_agg(distinct(item.id)) as itens
+      ,array_agg(distinct(item.service_product_id)) as service_products
 
-    //   FROM erp.contracts cont
-    //   left join erp.people cli on (cont.client_id = cli.id)
-    //   left join erp.contract_items item on (item.contract_id = cont.id and item.deleted is FALSE )--and item.service_product_id in (698, 699, 700))
+      FROM erp.contracts cont
+      left join erp.people cli on (cont.client_id = cli.id)
+      left join erp.contract_items item on (item.contract_id = cont.id and item.deleted is FALSE )--and item.service_product_id in (698, 699, 700))
 
-    //   where cont.id in
-    //   (
-    //     SELECT contract_id FROM erp.contract_events
-    //     where date < now() and id > ${lastEventId} --and deleted is false
-    //     and contract_event_type_id in (
-    //     3,  145,  117, 118 --Aprovação
-    //     ,24, 110, 144, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 174, 175 --Cancelamento
-    //     ,43, 151 --Suspensão
-    //     ,40, 81 --Bloqueio
-    //     ,41, 106 --Desbloqueio/Reativação
-    //     ,10 --Alteração de Situação
-    //     ,27, 133, 28 --Inclusao, Alteração e Exclusão de Servicos
-    //     ,8 --Alteração Titularidade
-    //     )
-    //   )
+      where cont.id in
+      (
+        SELECT contract_id FROM erp.contract_events
+        where date < now() and id > ${lastEventId} --and deleted is false
+        and contract_event_type_id in (
+        3,  145,  117, 118 --Aprovação
+        ,24, 110, 144, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 174, 175 --Cancelamento
+        ,43, 151 --Suspensão
+        ,40, 81 --Bloqueio
+        ,41, 106 --Desbloqueio/Reativação
+        ,10 --Alteração de Situação
+        ,27, 133, 28 --Inclusao, Alteração e Exclusão de Servicos
+        ,8 --Alteração Titularidade
+        )
+      )
 
-    //   and type_tx_id = 2 --pessoa física
-    //   and stage = 3 --aprovado
-    //   GROUP BY cont.id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
-    //   order by cont.id
-    //   ) as contratos ) as contratos_validados
+      and type_tx_id = 2 --pessoa física
+      and stage = 3 --aprovado
+      GROUP BY cont.id, cont.client_id, cont.stage, cont.v_stage, cont.status, cont.v_status, cli.id
+      order by cont.id
+      ) as contratos ) as contratos_validados
 
-    //   ${where && where.length > 0 ? ('where true ' + where) : ''}
+      ${where && where.length > 0 ? ('where true ' + where) : ''}
 
-    //   ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`
+      ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`
 
-
-    // const selectContractByEvents = await Database
-    //   .connection('pgvoalle')
-    //   .raw(select);
-
-    // // later close the connection
-    // Database.close(['pgvoalle']);
-
-    const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM public.select_events where TRUE and event_id > ${lastEventId ? lastEventId : 0}
-    ${where && where.length > 0 ? where : ''}
-    ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`;
 
     const selectContractByEvents = await Database
-      .connection('pg')
+      .connection('pgvoalle')
       .raw(select);
 
     // later close the connection
-    Database.close(['pg']);
+    Database.close(['pgvoalle']);
+
+    // const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM public.select_events where TRUE and event_id > ${lastEventId ? lastEventId : 0}
+    // ${where && where.length > 0 ? where : ''}
+    // ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`;
+
+    // const selectContractByEvents = await Database
+    //   .connection('pg')
+    //   .raw(select);
+
+    // // later close the connection
+    // Database.close(['pg']);
 
     const contractEvents = selectContractByEvents.rows
 
