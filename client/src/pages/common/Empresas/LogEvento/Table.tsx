@@ -27,6 +27,10 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
     //   formatter: (cell: any, row: any) => acoesFormatter(cell, row)
     // },
     {
+      dataField: "id",
+      text: 'ID',
+    },
+    {
       dataField: "contract_id",
       text: 'Contrato',
     },
@@ -95,10 +99,39 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
       formatter: (cell: any, row: any) => booleanFormater(cell, row, row.hbo_item_id),
       align: 'center',
       headerAlign: 'center',
-    }
-
+    },
+    getColumnColaborador()
 
   ])
+
+  function getColumnColaborador() {
+    return ({
+      dataField: 'user.name',
+      text: 'Colaborador',
+      formatter: (row: any, column: any) => colaboradorFormatter(row, column),
+      // csvFormatter: (cell, row) => colaboradorFormatterCsv(cell, row),
+      align: 'center',
+      headerAlign: 'center',
+      sort: true
+    })
+  }
+
+
+  const colaboradorFormatter = (cell: any, row: any) => (
+    <>
+      {
+        row.user &&
+        <Avatar
+          title={row.user.name}
+          user={row.user}
+          className='avatar-xs'
+          style={{
+            cursor: 'default'
+          }}
+        />
+      }
+    </>
+  )
 
   function getColorStage(row: any) {
     var color = 'secondary'
@@ -259,15 +292,6 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
     value = row.event_id;
 
     return (
-      // <>
-      //   <span
-      //     id={`evento-${row.id}`}
-      //     title={title}
-      //   >
-      //     {value}
-      //   </span>
-      // </>
-
       <>
         <Badge
           id={`evento-${row.id}`}

@@ -1,3 +1,5 @@
+import { User } from "../Security";
+
 type LogEvento = {
     id: number,
     contract_id: number,
@@ -31,6 +33,9 @@ type LogEvento = {
     watch_item_id?: number,
     ishbo: boolean,
     hbo_item_id?: number,
+
+    user_id: number,
+    user?: User,
 
     created_at: Date,
     updated_at: Date,

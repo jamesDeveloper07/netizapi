@@ -15,12 +15,14 @@ import api from "../../../../services/api";
 interface Props {
   contratos: Array<LogEvento>,
   pageProperties: any,
+  setPageProperties(pageProperties: any): any,
+  // setPageProperties: any,
   onTableChange(type: string, sortProperties: { page: number, sizePerPage: number, sortField: string, sortOrder: string }): Promise<void>,
   notify(type: string, msg: string): void,
   loading: boolean
 }
 
-const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, onTableChange, notify, loading, ...props }) => {
+const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, setPageProperties, onTableChange, notify, loading, ...props }) => {
   const history = useHistory()
   const { empresaSelecionada } = useContext(EmpresaContext)
   const [reexecutandoIntegracao, setReexecutandoIntegracao] = useState(false)
@@ -137,6 +139,10 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, o
 
     try {
       setReexecutandoIntegracao(true)
+      setPageProperties({
+        ...pageProperties,
+        loading: true
+      })
       const response = await api.get(`voalle/reexecutarintegracao`, {
         params: {
           emp_id: empresaSelecionada?.id,
@@ -161,6 +167,10 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, o
       notify('danger', 'Houve um problema ao Executar as Reexecução de integração.');
     } finally {
       setReexecutandoIntegracao(false)
+      setPageProperties({
+        ...pageProperties,
+        loading: false
+      })
     }
 
   }
@@ -170,6 +180,10 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, o
 
     try {
       setReexecutandoIntegracao(true)
+      setPageProperties({
+        ...pageProperties,
+        loading: true
+      })
       const response = await api.get(`voalle/executarcancelamentomanual`, {
         params: {
           emp_id: empresaSelecionada?.id,
@@ -194,6 +208,10 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, o
       notify('danger', 'Houve um problema ao Executar o Cancelamento Manual.');
     } finally {
       setReexecutandoIntegracao(false)
+      setPageProperties({
+        ...pageProperties,
+        loading: false
+      })
     }
 
   }

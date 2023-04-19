@@ -26,9 +26,31 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
     //   formatter: (cell: any, row: any) => acoesFormatter(cell, row)
     // },
     {
-      dataField: "protocolo_externo_id",
-      text: 'Protocolo',
+      dataField: "id",
+      text: 'ID',
     },
+    {
+      dataField: "log_evento_id",
+      text: 'Log Evt',
+    },
+    {
+      dataField: "log_evento_id",
+      text: 'Evento',
+      formatter: (cell: any, row: any) => getDadosEvento(cell, row)
+    },
+    {
+      dataField: "logEvento.contract_id",
+      text: 'Contrato',
+    },
+    
+    {
+      dataField: "logEvento.event_id",
+      text: 'Evento',
+    },
+    // {
+    //   dataField: "protocolo_externo_id",
+    //   text: 'Protocolo',
+    // },
     {
       dataField: "nome_cliente",
       text: 'Cliente',
@@ -72,8 +94,135 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
       headerAlign: 'center',
     },
     // hasPermission('ver-todas-solicitacoes') ? getColumnColaborador() : {}
-    true ? getColumnColaborador() : {}
+    getColumnColaborador()
   ])
+
+  const getDadosEvento = (cell: any, row: any) => {
+    if (!row || !row.logEvento) {
+      return
+    }
+
+    var title;
+    var value;
+    title = `Evento: ${row.logEvento.event_id}\nTipo: ${row.logEvento.event_type_id}\nDescrição: ${row.logEvento.event_descricao}`;
+    value = row.logEvento.event_id;
+
+    return (
+      <>
+        <Badge
+          id={`evento-${row.logEvento.id}`}
+          color={getColorEvento(row)}
+          className="badge-lg"
+          pill
+          title={title}
+        >
+          {value}
+        </Badge>
+      </>
+    )
+
+  }
+
+  function getColorEvento(row: LogIntegracao) {
+    var color = 'secondary'
+
+    if (row && row.logEvento) {
+      if (isAprocavao(row.logEvento.event_type_id) || isDesbloqueio(row.logEvento.event_type_id) || isAlteracaoSituacao(row.logEvento.event_type_id)) {
+        color = 'success'
+      } else {
+        if (isCancelamento(row.logEvento.event_type_id) || isSuspensao(row.logEvento.event_type_id) || isBloqueio(row.logEvento.event_type_id)) {
+          color = 'warning'
+        }
+      }
+    }
+
+    return color
+  }
+
+  function isAprocavao(event_type_id?: number) {
+    if (event_type_id) {
+      const idsTipo = [3, 145, 117, 118]
+      for (var i = 0; i < idsTipo.length; i++) {
+        if (idsTipo[i] == event_type_id) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function isCancelamento(event_type_id?: number) {
+    if (event_type_id) {
+      const idsTipo = [24, 110, 144, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 174, 175]
+      for (var i = 0; i < idsTipo.length; i++) {
+        if (idsTipo[i] == event_type_id) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function isSuspensao(event_type_id?: number) {
+    if (event_type_id) {
+      const idsTipo = [43, 151]
+      for (var i = 0; i < idsTipo.length; i++) {
+        if (idsTipo[i] == event_type_id) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function isBloqueio(event_type_id?: number) {
+    if (event_type_id) {
+      const idsTipo = [40, 81]
+      for (var i = 0; i < idsTipo.length; i++) {
+        if (idsTipo[i] == event_type_id) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function isDesbloqueio(event_type_id?: number) {
+    if (event_type_id) {
+      const idsTipo = [41, 106]
+      for (var i = 0; i < idsTipo.length; i++) {
+        if (idsTipo[i] == event_type_id) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function isAlteracaoSituacao(event_type_id?: number) {
+    if (event_type_id) {
+      const idsTipo = [10]
+      for (var i = 0; i < idsTipo.length; i++) {
+        if (idsTipo[i] == event_type_id) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
+  function isInclusaoAlteracaoOuExclusaoDeServico(event_type_id?: number) {
+    if (event_type_id) {
+      const idsTipo = [27, 133, 28]
+      for (var i = 0; i < idsTipo.length; i++) {
+        if (idsTipo[i] == event_type_id) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
 
   function getStatus(row: any) {

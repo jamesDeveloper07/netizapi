@@ -212,6 +212,7 @@ const ContratosByEventosIndex: React.FC = ({ }) => {
                       notify={notify}
                       onTableChange={handleTableChange}
                       pageProperties={pageProperties}
+                      setPageProperties={setPageProperties}
                       loading={loading}
                     />
                   </Col>
