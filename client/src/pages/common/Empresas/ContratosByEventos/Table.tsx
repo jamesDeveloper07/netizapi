@@ -161,10 +161,16 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
 
     } catch (err) {
       //@ts-ignore
-      console.log(err);
-      //@ts-ignore
-      console.log(err.response)
-      notify('danger', 'Houve um problema ao Executar as Reexecução de integração.');
+      if (err && err.response && err.response.status && err.response.status == 400 && err.response.data) {
+        //@ts-ignore
+        notify('danger', err.response.data);
+      } else {
+        notify('danger', 'Houve um problema ao Executar as Reexecução de integração.');
+        //@ts-ignore
+        console.log(err);
+        //@ts-ignore
+        console.log(err.response)
+      }
     } finally {
       setReexecutandoIntegracao(false)
       setPageProperties({
@@ -202,10 +208,16 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
 
     } catch (err) {
       //@ts-ignore
-      console.log(err);
-      //@ts-ignore
-      console.log(err.response)
-      notify('danger', 'Houve um problema ao Executar o Cancelamento Manual.');
+      if (err && err.response && err.response.status && err.response.status == 400 && err.response.data) {
+        //@ts-ignore
+        notify('danger', err.response.data);
+      } else {
+        notify('danger', 'Houve um problema ao Executar o Cancelamento Manual.');
+        //@ts-ignore
+        console.log(err);
+        //@ts-ignore
+        console.log(err.response)
+      }
     } finally {
       setReexecutandoIntegracao(false)
       setPageProperties({
