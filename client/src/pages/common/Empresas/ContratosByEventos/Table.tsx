@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import EmpresaContext from "../../../../contexts/Empresa";
 import { useHistory } from "react-router-dom";
 
-import { Badge } from "reactstrap";
+import { Badge, Modal, Button } from "reactstrap";
 import Table from '../../../../components/Table'
 import { MenuComportamento } from '../../../../components/Menus'
 import { LogEvento } from '../../../../entities/Common';
@@ -26,6 +26,7 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
   const history = useHistory()
   const { empresaSelecionada } = useContext(EmpresaContext)
   const [reexecutandoIntegracao, setReexecutandoIntegracao] = useState(false)
+  const [alert, setAlert] = useState<any>(undefined)
 
   const [columns] = useState([
     {
@@ -114,8 +115,6 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
       headerAlign: 'center',
       sort: true,
     }
-
-
   ])
 
   const acoesFormatter = (cell: any, row: { contract_id: any; }) => {
@@ -124,20 +123,38 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
         actions={[{
           label: 'Reexecutar Integração',
           icon: 'fa fa-share-alt',
-          onClick: () => handleRexecutarIntegracao(row.contract_id)
+          onClick: () => handleConfirmarAcao(row.contract_id, 'reexecutar')
         },
         {
           label: 'Forçar Cancelamento de SVA\'s',
           icon: 'fa fa-share-alt',
-          onClick: () => handleForcarCancelamento(row.contract_id)
+          onClick: () => handleConfirmarAcao(row.contract_id, 'cancelar')
         }]}
       />
     )
   }
 
-  async function handleRexecutarIntegracao(_contract_id: any) {
+  function handleConfirmarAcao(contract_id: any, tipoAcao: string) {
+
+    if (contract_id && tipoAcao) {
+      if (tipoAcao == 'reexecutar') {
+        confirmAlert(`Deseja realmente REEXECUTAR a integração de SVA's para o contrato ${contract_id}?`,
+          'warning',
+          () => handleReexecutarIntegracao(contract_id))
+      } else {
+        if (tipoAcao == 'cancelar') {
+          confirmAlert(`Deseja realmente CANCELAR os SVA's do contrato ${contract_id}?`,
+            'warning',
+            () => handleForcarCancelamento(contract_id))
+        }
+      }
+    }
+  }
+
+  async function handleReexecutarIntegracao(_contract_id: any) {
 
     try {
+      setAlert(null)
       setReexecutandoIntegracao(true)
       setPageProperties({
         ...pageProperties,
@@ -185,6 +202,7 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
     // notify('warning', 'Função ainda não implementda.');
 
     try {
+      setAlert(null)
       setReexecutandoIntegracao(true)
       setPageProperties({
         ...pageProperties,
@@ -226,6 +244,52 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
       })
     }
 
+  }
+
+  function confirmAlert(message: any, alertColor: any, onConfirm: any) {
+    setAlert(
+      <Modal
+        className={`modal-dialog-centered modal-${alertColor}`}
+        contentClassName={`bg-gradient-${alertColor}`}
+        size="md"
+        isOpen={true}
+        toggle={() => setAlert(null)}
+      >
+        <div className="modal-header">
+          <h6 className="modal-title" id="modal-title-notification">
+            Atenção
+          </h6>
+        </div>
+        <div className="modal-body">
+          <div className="py-3 text-center">
+            <i className="fas fa-question-circle ni-3x" />
+            <h4 className="heading mt-4"></h4>
+            <p>
+              {message}
+            </p>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <Button
+            className="text-white ml-auto"
+            color="link"
+            data-dismiss="modal"
+            type="button"
+            onClick={() => setAlert(null)}
+          >
+            Fechar
+          </Button>
+
+          <Button
+            onClick={onConfirm}
+            className="btn-white"
+            color="default"
+            type="button">
+            Sim
+          </Button>
+        </div>
+      </Modal>
+    )
   }
 
   function getColorStage(row: any) {
@@ -556,6 +620,7 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
 
   return (
     <>
+      {alert}
       <Table
         columns={columns}
         data={contratos}
