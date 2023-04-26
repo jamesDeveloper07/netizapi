@@ -44,7 +44,7 @@ class EventRepository {
     deezer_item_id, iswatch, watch_item_id, ishbo, hbo_item_id`;
 
     if (isHomologacao) {
-      const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM public.select_events where TRUE and event_id > ${lastEventId ? lastEventId : 0}
+      const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM public.select_events where event_id > ${lastEventId ? lastEventId : 0}
       ${where && where.length > 0 ? where : ''}
       ${paginate && paginate.length > 0 ? paginate : 'order by event_id asc limit 1000'}`;
 
@@ -128,12 +128,66 @@ class EventRepository {
         .raw(select);
 
       // later close the connection
-      Database.close(['pgvoalle']);
+      //Database.close(['pgvoalle']);
     }
 
     const contractEvents = selectContractByEvents.rows
 
     return contractEvents;
+  }
+
+
+  async getTitularesAnterioresByContrato(_contract_id) {
+
+    var isHomologacao = false;
+    const paramIsHML = await Parametro.findBy({ chave: 'is_homologacao' });
+
+    if (paramIsHML && paramIsHML.id && paramIsHML.id > 0) {
+      if (paramIsHML.valor && (paramIsHML.valor.toLowerCase() == 'true' || paramIsHML.valor.toLowerCase() == 'verdadeiro')) {
+        isHomologacao = true;
+      }
+    }
+
+    var selectTitularesAnteriores;
+
+    if (isHomologacao) {
+      const select = `SELECT id, name, tx_id, email, phone FROM public.titulares_anteriores where contract_id = ${_contract_id} order by id asc`;
+
+      selectTitularesAnteriores = await Database
+        .connection('pg')
+        .raw(select);
+
+      // later close the connection
+      //Database.close(['pg']);
+
+    } else {
+      //seleciona pessoas que já foram titular neste contrato anteriormente e que, atualmente, não seja titular em nenhum outro contrato ativo com direito a Deezer.
+      const select = `SELECT id, name, tx_id, email, cell_phone_1 as phone
+      FROM erp.people
+      where id in (SELECT distinct(client_id) FROM erp.financial_receivable_titles where contract_id = ${_contract_id})
+      and id not in (
+      SELECT DISTINCT(cont.client_id)
+      FROM erp.contracts cont
+      inner join erp.contract_items item on (item.contract_id = cont.id and item.deleted is FALSE and item.service_product_id = 698)
+      where  stage = 3 --aprovado
+      and cont.status in (1,3) --normal ou cortesia
+      AND cont.client_id in (SELECT distinct(client_id) FROM erp.financial_receivable_titles where contract_id = ${_contract_id})
+      )
+      and id <> (SELECT client_id FROM erp.contracts where id = ${_contract_id})
+      order by id`
+
+
+      selectTitularesAnteriores = await Database
+        .connection('pgvoalle')
+        .raw(select);
+
+      // later close the connection
+      //Database.close(['pgvoalle']);
+    }
+
+    const titularesAnteriores = selectTitularesAnteriores.rows
+
+    return titularesAnteriores;
   }
 
   async executarCancelamentoManual(_contract_id, _user_id) {
@@ -539,6 +593,9 @@ class EventRepository {
 
       var successDeezer = await this.executarDeezer(event, servico, acaoServico, tipoExecucao);
 
+      //executar cancelamento dos titulares anteriores
+      successDeezer = await this.cancelarDeezerParaTitularesAnteriores(event, servico, acaoServico);
+
       if (successDeezer) {
         SVAsOK += 'Deezer'
         separadorOk = ', '
@@ -549,6 +606,41 @@ class EventRepository {
     } else {
       console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
     }
+  }
+
+  async cancelarDeezerParaTitularesAnteriores(event, servico, acaoServico) {
+
+    var successDeezer = false;
+
+    const titularesAnteriores = await this.getTitularesAnterioresByContrato(event.contract_id);
+
+    console.log('\n===== TRATANDO TITULARES ANTERIORES =====\n')
+
+    if (titularesAnteriores && titularesAnteriores.length > 0) {
+      console.log(`===== ACIONANDO O FOR =====\n${titularesAnteriores.length} titular(es) anterior(es) encontrado(s)`)
+    } else {
+      console.log('===== SEM TITULARES ANTERIORES PARA CANCELAMENTO =====\n')
+    }
+
+    for (const titularAnterior of titularesAnteriores) {
+      var evento = Object.assign({}, event);
+      console.log('\n===INICIO====================================')
+      console.log('===== EVENTO =====')
+      console.log({ evento })
+
+      evento.name = titularAnterior.name;
+      evento.tx_id = titularAnterior.tx_id;
+      evento.email = titularAnterior.email;
+      evento.phone = titularAnterior.phone;
+      evento.client_id = titularAnterior.id;
+      evento.event_descricao += " (TITULAR ANTERIOR)";
+
+      console.log('===== EXECUTAR INTEGRAÇÂO - TITULAR ANTERIOR =====\n')
+      successDeezer = await this.executarDeezer(evento, servico, acaoServico, 'deactivate');
+      console.log('===FIM INTEGRAÇÂO - TITULAR ANTERIOR==============\n')
+    }
+
+    return successDeezer;
   }
 
   async executarDeezer(event, servico, acaoServico, tipoExecucao) {
