@@ -127,7 +127,7 @@ const TableSolicitacoes: React.FC<Props> = ({ solicitacoes, pageProperties, onTa
     <>
       <div
         id={`acao-${row.id}`}
-        title={`${row.acao}`}
+        title={`${row.acaoServico.acao}`}
       >
         {row.acaoServico.acao.nome}
       </div>
