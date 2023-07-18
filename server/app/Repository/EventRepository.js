@@ -656,9 +656,25 @@ class EventRepository {
       var ext = '&ext=' + event.phone;
 
       var urlApi = hostApi + tipoExecucao + code + key
+      var cpfBlindado = false;
 
       if (tipoExecucao === 'activate') {
         urlApi = urlApi + ext;
+      } else {
+        // deezer_cpfs_blindados
+        const paramCpfsBlindados = await Parametro.findBy({ chave: 'deezer_cpfs_blindados' });
+        if (paramCpfsBlindados && paramCpfsBlindados.id && paramCpfsBlindados.id > 0) {
+
+          var cpfArrayStr = paramCpfsBlindados.valor;
+          var cpfArray = cpfArrayStr.split(",");
+
+          for (const cpf of cpfArray) {
+            if (cpf === event.tx_id) {
+              cpfBlindado = true;
+              break;
+            }
+          }
+        }
       }
 
       const newLogIntegracao = {
@@ -681,6 +697,19 @@ class EventRepository {
       }
 
       try {
+
+        if (tipoExecucao === 'deactivate' && cpfBlindado) {
+          newLogIntegracao.status = 'falha';
+          newLogIntegracao.status_detalhe = 'Cpf blindado para desativações em nossas configurações';
+
+          const logIntegracao = await LogIntegracao.create(newLogIntegracao)
+          const id = logIntegracao.id
+          const data = await LogIntegracao.query()
+            .where({ id })
+            .first()
+
+          return false;
+        }
 
         const response = await axios({
           method: 'get',
