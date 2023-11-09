@@ -949,12 +949,18 @@ class EventRepository {
 
         const respTicket = await axios(config)
           .then(function (resp) {
+		  console.log('\n\n');
+		  console.log('Retorno do Then:\n');
+		  console.log(resp);
+
+
             return resp.data;
           })
           .catch(function (error) {
             console.log('\n\n');
-            console.log(error.response);
-            return error.response;
+		  console.log('Retorno do Catch:\n')
+            console.log(error);
+            return error;
           });
 
 
@@ -978,7 +984,7 @@ class EventRepository {
 
           await LogIntegracao.create(newLogIntegracao)
 
-          console.error(respTicket.data)
+          console.error(respTicket)
 
           return false;
         }
