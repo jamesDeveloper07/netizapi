@@ -974,7 +974,7 @@ class EventRepository {
 
         } else {
           newLogIntegracao.status = 'falha';
-          newLogIntegracao.status_detalhe = respTicket;
+          newLogIntegracao.status_detalhe = respTicket.data;
 
           await LogIntegracao.create(newLogIntegracao)
 
