@@ -114,7 +114,15 @@ const TableContratosByEventos: React.FC<Props> = ({ contratos, pageProperties, s
       align: 'center',
       headerAlign: 'center',
       sort: true,
-    }
+    },
+    {
+      dataField: "iswatchup",
+      text: 'Watch Up+?',
+      formatter: (cell: any, row: any) => booleanFormater(cell, row, row.watchup_item_id),
+      align: 'center',
+      headerAlign: 'center',
+      sort: true,
+    },
   ])
 
   const acoesFormatter = (cell: any, row: { contract_id: any; }) => {

@@ -58,6 +58,7 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
     const [temDeezer, setTemDeezer] = usePersistedState('temDeezerLogs', -1)
     const [temWatch, setTemWatch] = usePersistedState('temWatchLogs', -1)
     const [temHBO, setTemHBO] = usePersistedState('temHBOLogs', -1)
+    const [temWatchUp, setTemWatchUp] = usePersistedState('temWatchUpLogs', -1)
 
     const [temSvaList] = useState([{ id: -1, value: '- Todos -' }, { id: 0, value: 'Não' }, { id: 1, value: 'Sim' }])
 
@@ -93,6 +94,7 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
             setTemDeezer(null)
             setTemWatch(null)
             setTemHBO(null)
+            setTemWatchUp(null)
         }
     }, [temSVA])
 
@@ -185,6 +187,7 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
             temDeezer,
             temWatch,
             temHBO,
+            temWatchUp,
         }, clearPagination, clearSort)
     }
 
@@ -204,6 +207,7 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
         setTemDeezer(null)
         setTemWatch(null)
         setTemHBO(null)
+        setTemWatchUp(null)
     }
 
     function handleMultipleSelect(target: any, state: any) {
@@ -556,6 +560,31 @@ const FilterContratosByEventos: React.FC<Props> = ({ title, notify, load, ...pro
                                         //@ts-ignore
                                         onSelect={({ target }) => setTemHBO(target.value)}
                                         value={temHBO}
+                                        //@ts-ignore
+                                        data={temSvaList.map((item) => ({ id: item.id, text: item.value }))}
+                                    />
+                                </InputGroup>
+                            </FormGroup>
+                        </Col>
+                    }
+                    {temSVA && temSVA != 0 &&
+                        <Col xs="3" lg="3" sm="6" md="6">
+                            <FormGroup>
+                                <label
+                                    className="form-control-label"
+                                >
+                                    Tem Watch Up+?
+                                </label>
+                                <InputGroup className="input-group-alternative">
+                                    <Select2
+                                        className="input-group-alternative"
+                                        defaultValue="-1"
+                                        options={{
+                                            placeholder: "Selecione..."
+                                        }}
+                                        //@ts-ignore
+                                        onSelect={({ target }) => setTemWatchUp(target.value)}
+                                        value={temWatchUp}
                                         //@ts-ignore
                                         data={temSvaList.map((item) => ({ id: item.id, text: item.value }))}
                                     />

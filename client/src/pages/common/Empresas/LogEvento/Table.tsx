@@ -100,6 +100,13 @@ const TableLogs: React.FC<Props> = ({ logs, pageProperties, onTableChange, notif
       align: 'center',
       headerAlign: 'center',
     },
+    {
+      dataField: "iswatchup",
+      text: 'Watch Up+?',
+      formatter: (cell: any, row: any) => booleanFormater(cell, row, row.watchup_item_id),
+      align: 'center',
+      headerAlign: 'center',
+    },
     getColumnColaborador()
 
   ])
