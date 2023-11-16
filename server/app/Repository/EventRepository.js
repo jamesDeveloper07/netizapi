@@ -41,7 +41,7 @@ class EventRepository {
 
     const colunasPadrao = `contract_id, client_id, name, tx_id, type_tx_id, phone, email, stage, v_stage, status, v_status,
     deleted, event_id, event_type_id, event_descricao, event_data, itens, service_products, isservicodigital, isdeezer,
-    deezer_item_id, iswatch, watch_item_id, ishbo, hbo_item_id`;
+    deezer_item_id, iswatch, watch_item_id, ishbo, hbo_item_id, iswatchup, watchup_item_id`;
 
     if (isHomologacao) {
       const select = `SELECT ${colunas && colunas.length > 0 && colunas != '*' ? colunas : colunasPadrao} FROM public.select_events where event_id > ${lastEventId ? lastEventId : 0}
@@ -62,7 +62,7 @@ class EventRepository {
       ,(select description from erp.contract_events where id = event_id) as event_descricao
       ,(select date from erp.contract_events where id = event_id) as event_data
       ,itens::text, service_products::text
-      ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint]) ) as isServicoDigital
+      ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint]) or service_products @> ARRAY[795::bigint]) ) as isServicoDigital
 
       ,(service_products is not null and service_products @> ARRAY[698::bigint]) as isDeezer
       ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.deleted is FALSE limit 1) as deezer_item_id
@@ -72,6 +72,9 @@ class EventRepository {
 
       ,(service_products is not null and service_products @> ARRAY[700::bigint]) as isHBO
       ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 700 and sva.deleted is FALSE limit 1) as hbo_item_id
+
+      ,(service_products is not null and service_products @> ARRAY[795::bigint]) as isWatchUp
+      ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 795 and sva.deleted is FALSE limit 1) as watchUp_item_id
 
       from (
       SELECT cont.id as contract_id
@@ -94,7 +97,7 @@ class EventRepository {
 
       FROM erp.contracts cont
       left join erp.people cli on (cont.client_id = cli.id)
-      left join erp.contract_items item on (item.contract_id = cont.id and item.deleted is FALSE )--and item.service_product_id in (698, 699, 700))
+      left join erp.contract_items item on (item.contract_id = cont.id and item.deleted is FALSE )--and item.service_product_id in (698, 699, 700, 795))
 
       where cont.id in
       (
@@ -412,6 +415,10 @@ class EventRepository {
         await this.ativarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
       }
 
+      if (event.iswatchup) {
+        await this.ativarWatchUp(event, SVAsOK, separadorOk, SVAsError, separadorError);
+      }
+
       console.log(`${tipo} executada para ${event.contract_id} - ${event.name} - Assinaturas (${SVAsOK})`)
     }
   }
@@ -434,6 +441,9 @@ class EventRepository {
       if (event.ishbo) {
         await this.cancelarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
       }
+      if (event.iswatchup) {
+        await this.cancelarWatchUp(event, SVAsOK, separadorOk, SVAsError, separadorError);
+      }
 
       console.log(`Executado cancelamento de SVAs com validação para ${event.contract_id} - ${event.name} - Assinaturas (${SVAsOK})`)
     }
@@ -449,6 +459,7 @@ class EventRepository {
     await this.cancelarDeezer(event, SVAsOK, separadorOk, SVAsError, separadorError);
     await this.cancelarWatch(event, SVAsOK, separadorOk, SVAsError, separadorError);
     await this.cancelarHBO(event, SVAsOK, separadorOk, SVAsError, separadorError);
+    await this.cancelarWatchUp(event, SVAsOK, separadorOk, SVAsError, separadorError);
 
     console.log(`Executado cancelamento forçado de SVAs para ${event.contract_id} - ${event.name}`)
   }
@@ -870,6 +881,62 @@ class EventRepository {
         separadorOk = ', '
       } else {
         SVAsError += separadorError + 'HBO Max'
+        separadorError = ', '
+      }
+    } else {
+      console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
+    }
+  }
+
+  async ativarWatchUp(event, SVAsOK, separadorOk, SVAsError, separadorError) {
+    var servico_id = 5
+    var acao_id = 1
+
+    const servico = await Servico.query()
+      .where({ id: servico_id })
+      .first()
+
+    const acaoServico = await AcaoServico.query()
+      .where({ servico_id })
+      .where({ acao_id })
+      .first()
+
+    if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
+      var successHBO = await this.inserirTicketWatch(event, servico, acaoServico);
+
+      if (successHBO) {
+        SVAsOK += separadorOk + 'Watch UP+'
+        separadorOk = ', '
+      } else {
+        SVAsError += separadorError + 'Watch UP+'
+        separadorError = ', '
+      }
+    } else {
+      console.log(`Servico ${servico.nome} inativo ou não possui integração por api`)
+    }
+  }
+
+  async cancelarWatchUp(event, SVAsOK, separadorOk, SVAsError, separadorError) {
+    var servico_id = 5
+    var acao_id = 2
+
+    const servico = await Servico.query()
+      .where({ id: servico_id })
+      .first()
+
+    const acaoServico = await AcaoServico.query()
+      .where({ servico_id })
+      .where({ acao_id })
+      .first()
+
+    if (servico && servico.status && servico.status == 'ativo' && servico.integracao_by_api) {
+      var successHBO = await this.deletarTicketWatch(event, servico, acaoServico);
+
+      if (successHBO) {
+        SVAsOK += separadorOk + 'Watch UP+'
+        separadorOk = ', '
+      } else {
+        SVAsError += separadorError + 'Watch UP+'
         separadorError = ', '
       }
     } else {

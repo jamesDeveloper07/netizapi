@@ -33,7 +33,7 @@ class EventController {
 
       var { stage, status } = request.only(['stage', 'status']);
 
-      var { temSVA, temDeezer, temWatch, temHBO } = request.only(['temSVA', 'temDeezer', 'temWatch', 'temHBO']);
+      var { temSVA, temDeezer, temWatch, temHBO, temWatchUp  } = request.only(['temSVA', 'temDeezer', 'temWatch', 'temHBO', 'temWatchUp']);
 
       // var { data_inicio_execucao, data_fim_execucao } = request.only(['data_inicio_execucao', 'data_fim_execucao']);
 
@@ -120,6 +120,14 @@ class EventController {
         } else {
           if (temHBO == 1) {
             sqlSVAs += `and ishbo`
+          }
+        }
+
+        if (temWatchUp == 0) {
+          sqlSVAs += `and not iswatchup`
+        } else {
+          if (temWatchUp == 1) {
+            sqlSVAs += `and iswatchup`
           }
         }
 
