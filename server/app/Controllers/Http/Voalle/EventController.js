@@ -116,10 +116,10 @@ class EventController {
         }
 
         if (temHBO == 0) {
-          sqlSVAs += `and not ishbo`
+          sqlSVAs += `and not ishbo `
         } else {
           if (temHBO == 1) {
-            sqlSVAs += `and ishbo`
+            sqlSVAs += `and ishbo `
           }
         }
 
