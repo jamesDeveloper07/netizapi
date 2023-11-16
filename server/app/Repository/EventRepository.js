@@ -62,7 +62,7 @@ class EventRepository {
       ,(select description from erp.contract_events where id = event_id) as event_descricao
       ,(select date from erp.contract_events where id = event_id) as event_data
       ,itens::text, service_products::text
-      ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint]) or service_products @> ARRAY[795::bigint]) ) as isServicoDigital
+      ,(service_products is not null and (service_products @> ARRAY[698::bigint] or service_products @> ARRAY[699::bigint] or service_products @> ARRAY[700::bigint] or service_products @> ARRAY[795::bigint]) ) as isServicoDigital
 
       ,(service_products is not null and service_products @> ARRAY[698::bigint]) as isDeezer
       ,(select sva.id from erp.contract_items as sva where sva.contract_id = contratos.contract_id and sva.service_product_id = 698 and sva.deleted is FALSE limit 1) as deezer_item_id
