@@ -99,9 +99,9 @@ class WatchController {
         const token = res.data.Result[0];
         // console.log({ token });
 
-        var msgResponse;
-
         if (token && token.access_token) {
+          
+          var msgResponse;
 
           try {
             if (paramToken && paramToken.id && paramToken.id > 0) {
@@ -133,6 +133,25 @@ class WatchController {
                 msgResponse += ' (hml e prod)'
               }
             }
+
+            //repassando o token pra o backend hml.app.n1z.nl
+            try {
+
+              var urlUpdateAccessToken = 'https://hml.app.n1z.nl/api/watch/updateAccessToken?accessToken='+token.access_token;
+
+              const resp2 = await axios({
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: urlUpdateAccessToken,
+                headers: {
+                  'X-API-Key': '08262ce6d1923fc84227e9147ebe956c'
+                }
+              }).then(async (res2) => {
+              }, (error2) => {
+                console.log('\nENTROU NO ERROR');
+                console.log(error2);
+              });
+            } catch (error) { }
 
             return response.status(200).send(msgResponse);
 
@@ -210,12 +229,15 @@ class WatchController {
 
         if (token && token.access_token) {
 
+          var msgResponse;
+
           try {
             if (paramToken && paramToken.id && paramToken.id > 0) {
               paramToken.valor = token.access_token;
               paramToken.updated_at = new Date();
               await paramToken.save();
-              return response.status(200).send('Parametro watch_access_token atualizado com sucesso.');
+              // return response.status(200).send('Parametro watch_access_token atualizado com sucesso.');
+              msgResponse = 'Parametro watch_access_token atualizado com sucesso.'
             } else {
               const newParamToken = new Parametro();
               newParamToken.merge({
@@ -227,8 +249,29 @@ class WatchController {
               });
 
               await newParamToken.save();
-              return response.status(200).send('Parametro watch_access_token criado com sucesso.');
+              // return response.status(200).send('Parametro watch_access_token criado com sucesso.');
+              msgResponse = 'Parametro watch_access_token criado com sucesso.'
             }
+
+            //repassando o token pra o backend app.n1z.nl
+            try {
+              var urlUpdateAccessToken = 'https://app.n1z.nl/api/watch/updateAccessToken?accessToken='+token.access_token;
+
+              const resp2 = await axios({
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: urlUpdateAccessToken,
+                headers: {
+                  'X-API-Key': '08262ce6d1923fc84227e9147ebe956c'
+                }
+              }).then(async (res2) => {
+              }, (error2) => {
+                console.log('\nENTROU NO ERROR');
+                console.log(error2);
+              });
+            } catch (error) { }
+
+            return response.status(200).send(msgResponse);
 
           } catch (error) {
             return response.status(400).send('Falha na atualização do parametro watch_access_token.');
@@ -328,7 +371,7 @@ class WatchController {
         separador = '&'
       }
 
-      if (pAssinanteIDIntegracao && pAssinanteIDIntegracao.trim().length > 0 ) {
+      if (pAssinanteIDIntegracao && pAssinanteIDIntegracao.trim().length > 0) {
         url += separador + 'pAssinanteIDIntegracao=' + pAssinanteIDIntegracao;
         separador = '&'
       }
